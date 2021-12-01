@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import SafariServices
 
 class TopHeadlinesViewController: UIViewController {
     // MARK: - Properties
@@ -36,12 +37,20 @@ class TopHeadlinesViewController: UIViewController {
         return label
     }()
     
-    lazy var articlesTableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.register(ArticleTableViewCell.self, forCellReuseIdentifier: ArticleTableViewCell.CELL_IDENTIFIER)
-        tableView.backgroundColor = .white
-        return tableView
+    lazy var articlesTableView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        view.isPagingEnabled = false
+        view.isScrollEnabled = true
+        view.showsVerticalScrollIndicator = false
+        view.register(ArticleTableViewCell.self, forCellWithReuseIdentifier: ArticleTableViewCell.CELL_IDENTIFIER)
+        view.backgroundColor = .clear
+        return view
     }()
     
     
@@ -64,6 +73,10 @@ class TopHeadlinesViewController: UIViewController {
         // Do any additional setup after loading the view.
         setupUI()
         bindTableData()
+        
+        articlesTableView
+            .rx.delegate
+            .setForwardToDelegate(self, retainDelegate: false)
     }
     
     func bindTableData() {
@@ -73,20 +86,13 @@ class TopHeadlinesViewController: UIViewController {
                 cell.populateCell(data: model)
             }.disposed(by: disposeBag)
         
-        articlesTableView.rx.modelSelected(ArticleModel.self).bind { article in
-            print(article.title)
-            
-            // MARK: - TO DO --> Display article in a web view
-            //            tableView.rx.modelSelected(UniversityModel.self)
-            //              .map { URL(string: $0.webPages?.first ?? "")! }
-            //              .compactMap { URL(string: $0) }
-            //              .map { SFSafariViewController(url: $0) }
-            //              .subscribe(onNext: { [weak self] safariViewController in
-            //                self?.present(safariViewController, animated: true)
-            //              })
-            //              .disposed(by: disposeBag)
-            
-        }.disposed(by: disposeBag)
+        articlesTableView.rx.modelSelected(ArticleModel.self)
+            .compactMap { URL(string: $0.url) }
+            .map { SFSafariViewController(url: $0) }
+            .subscribe(onNext: { [weak self] safariViewController in
+              self?.present(safariViewController, animated: true)
+            })
+            .disposed(by: disposeBag)
         
         viewModel.fetchItems()
     }
@@ -139,5 +145,26 @@ class TopHeadlinesViewController: UIViewController {
             menuView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
             menuView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
         ])
+    }
+}
+
+// Launches Flow Layout Setup
+extension TopHeadlinesViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        // Setup cell size
+        let size = articlesTableView.frame.size
+        return CGSize(width: size.width, height: size.height * 0.2)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 10.0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0.0
     }
 }

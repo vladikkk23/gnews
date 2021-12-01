@@ -8,7 +8,7 @@
 import UIKit
 import RxSwift
 
-class ArticleTableViewCell: UITableViewCell {
+class ArticleTableViewCell: UICollectionViewCell {
     // MARK: - Properties
     static let CELL_IDENTIFIER = "ArticleTableViewCell"
     
@@ -35,13 +35,13 @@ class ArticleTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "photo")
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         return imageView
     }()
     
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         
         setupCell()
     }
@@ -78,7 +78,7 @@ class ArticleTableViewCell: UITableViewCell {
             image.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             image.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             image.heightAnchor.constraint(equalTo: self.heightAnchor),
-            image.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.35)
+            image.widthAnchor.constraint(equalTo: self.heightAnchor)
         ])
     }
     
@@ -86,7 +86,7 @@ class ArticleTableViewCell: UITableViewCell {
         addSubview(descriptionLabel)
         
         NSLayoutConstraint.activate([
-            descriptionLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 20),
+            descriptionLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 10),
             descriptionLabel.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 20),
             descriptionLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20),
             descriptionLabel.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.4)
@@ -99,8 +99,22 @@ class ArticleTableViewCell: UITableViewCell {
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: image.trailingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: descriptionLabel.trailingAnchor),
-            titleLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
-            titleLabel.bottomAnchor.constraint(equalTo: self.descriptionLabel.topAnchor, constant: -10)
+            titleLabel.bottomAnchor.constraint(equalTo: self.descriptionLabel.topAnchor)
         ])
+    }
+}
+
+// MARK: - Set background color and add shadow
+extension ArticleTableViewCell {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        self.backgroundColor = .white
+        
+        self.layer.masksToBounds = false
+        self.layer.shadowRadius = 5
+        self.layer.shadowOpacity = 0.25
+        self.layer.shadowColor = UIColor.lightGray.cgColor
+        self.layer.shadowOffset = CGSize(width: 0 , height: 5)
     }
 }
