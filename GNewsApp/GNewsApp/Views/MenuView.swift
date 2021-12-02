@@ -100,7 +100,6 @@ class MenuButton: UIView {
         }
     }
     
-    var viewModel = MenuButtonViewModel()
     var navigationViewModel = NavigationViewModel(withViewController: NewsViewController())
     
     var isActive = false
@@ -142,23 +141,18 @@ class MenuButton: UIView {
         if let type = type {
             switch type {
             case .home:
-                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "house")
                 titleLabel.text = "Home"
             case .news:
-                viewModel.rootVC = NewsViewController()
                 image.image = UIImage(systemName: "text.justify")
                 titleLabel.text = "News"
             case .search:
-                viewModel.rootVC = SearchViewController()
                 image.image = UIImage(systemName: "magnifyingglass")
                 titleLabel.text = "Search"
             case .profile:
-                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "person")
                 titleLabel.text = "Profile"
             case .more:
-                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "ellipsis.circle.fill")
                 titleLabel.text = "More"
             }

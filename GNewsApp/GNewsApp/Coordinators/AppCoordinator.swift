@@ -35,12 +35,11 @@ class AppCoordinator: BaseCoordinator {
     }
     
     private func subscribeToChanges() {
-//        showNewsView()
         navViewModel!.isViewActive
             .subscribe(onNext: { [weak self] _ in
                 guard let self = self else { return }
-
-                self.showNewsView()
+                
+                self.showSearchView()
             })
             .disposed(by: disposeBag)
     }

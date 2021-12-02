@@ -85,6 +85,12 @@ class SearchViewController: UIViewController {
             .bind(to: titleLabel.rx.text)
             .disposed(by: disposeBag)
         
+        viewModel.count
+            .subscribe(onNext: {
+                print($0)
+            })
+            .disposed(by: disposeBag)
+        
         viewModel.articles
             .observe(on: MainScheduler.instance)
             .bind(to: articlesTableView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in

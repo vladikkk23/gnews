@@ -41,22 +41,3 @@ struct NavigationViewModel {
         }
     }
 }
-
-struct MenuButtonViewModel {
-    // MARK: - Properties
-    private let disposeBag = DisposeBag()
-    var rootVC: UIViewController?
-    weak var delegate: NavigationDelegate?
-    
-    
-    func handleTap(forButtonType type: MenuButtonType) {
-        guard let navigationDelegate = self.delegate else { return }
-        
-        switch type {
-        case .news:
-            navigationDelegate.didStartNavigation()
-        default:
-            navigationDelegate.didFailNavigation()
-        }
-    }
-}

@@ -65,16 +65,8 @@ struct ArticleCellViewModel {
         
         let result: Observable<NewsModel> = Observable.just(NewsModel(totalArticles: 5, articles: models))
         
-        articles.asObservable()
-            .subscribe(onNext: { print($0.count) })
-            .disposed(by: disposeBag)
-        
         result
             .subscribe(onNext: { articles.onNext($0.articles) })
-            .disposed(by: disposeBag)
-        
-        count.asObservable()
-            .subscribe(onNext: { print($0) })
             .disposed(by: disposeBag)
         
         result
