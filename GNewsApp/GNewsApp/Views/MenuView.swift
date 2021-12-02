@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxSwift
 
 // MARK: - Menu View
 class MenuView: UIView {
@@ -46,7 +47,7 @@ class MenuView: UIView {
     }()
     
     lazy var buttonsStack: UIStackView = {
-       let stack = UIStackView()
+        let stack = UIStackView()
         stack.axis = .horizontal
         stack.distribution = .equalSpacing
         stack.alignment = .center
@@ -99,6 +100,13 @@ class MenuButton: UIView {
         }
     }
     
+    var viewModel = MenuButtonViewModel()
+    var navigationViewModel = NavigationViewModel(withViewController: NewsViewController())
+    
+    var isActive = false
+    
+    private var disposeBag = DisposeBag()
+    
     // UI
     lazy var button: UIButton = {
         let btn = UIButton()
@@ -125,32 +133,58 @@ class MenuButton: UIView {
     
     // MARK: - Methods
     private func setupView() {
-        setupButtonLayout()
         setupImageLayout()
         setupTitleLabel()
+        setupButtonLayout()
     }
     
     private func setupButton() {
         if let type = type {
             switch type {
             case .home:
+                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "house")
                 titleLabel.text = "Home"
             case .news:
+                viewModel.rootVC = NewsViewController()
                 image.image = UIImage(systemName: "text.justify")
-                image.tintColor = .systemOrange
                 titleLabel.text = "News"
-                titleLabel.textColor = .systemOrange
             case .search:
+                viewModel.rootVC = SearchViewController()
                 image.image = UIImage(systemName: "magnifyingglass")
                 titleLabel.text = "Search"
             case .profile:
+                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "person")
                 titleLabel.text = "Profile"
             case .more:
+                viewModel.rootVC = UIViewController()
                 image.image = UIImage(systemName: "ellipsis.circle.fill")
                 titleLabel.text = "More"
             }
+            
+            // Binding
+            button.rx.tap
+                .bind { [weak self] in self?.navigationViewModel.didStartNavigationTapped() }
+                .disposed(by: disposeBag)
+            
+            navigationViewModel.isViewActive
+                .bind(to: button.rx.isSelected)
+                .disposed(by: disposeBag)
+            
+            navigationViewModel.didStartNavigation
+                .subscribe(onNext: {
+                    // Navigate to selected View
+                    print("Navigate to: \(type) view")
+                })
+                .disposed(by: disposeBag)
+            
+            navigationViewModel.didFailNavigation
+                .subscribe(onNext: {
+                    // Show error
+                    print("Navigation to: \(type) view failed")
+                })
+                .disposed(by: disposeBag)
         }
         
         setupView()
@@ -197,4 +231,21 @@ enum MenuButtonType {
     case search
     case profile
     case more
+}
+
+extension UIView {
+    
+    var viewController: UIViewController? {
+        
+        var responder: UIResponder? = self
+        
+        while responder != nil {
+            
+            if let responder = responder as? UIViewController {
+                return responder
+            }
+            responder = responder?.next
+        }
+        return nil
+    }
 }

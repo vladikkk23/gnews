@@ -1,24 +1,23 @@
 //
-//  ViewController.swift
+//  SearchViewController.swift
 //  GNewsApp
 //
-//  Created by vladikkk on 26/11/2021.
+//  Created by vladikkk on 01/12/2021.
 //
 
 import UIKit
 import RxSwift
-import RxCocoa
 import SafariServices
 
-class TopHeadlinesViewController: UIViewController {
+class SearchViewController: UIViewController {
     // MARK: - Properties
-    private var viewModel = ArticleCellViewModel()
+    var viewModel = ArticleCellViewModel()
     
     private let disposeBag = DisposeBag()
     
     // UI
     lazy var navigationView: UIView = {
-        let view = NavigationView(frame: .zero)
+        let view = SearchNavigationView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .white
         view.layer.masksToBounds = false
@@ -53,7 +52,6 @@ class TopHeadlinesViewController: UIViewController {
         return view
     }()
     
-    
     lazy var menuView: UIView = {
         let view = MenuView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -71,6 +69,7 @@ class TopHeadlinesViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
         setupUI()
         bindTableData()
         
@@ -80,6 +79,12 @@ class TopHeadlinesViewController: UIViewController {
     }
     
     func bindTableData() {
+        viewModel.count
+            .observe(on: MainScheduler.instance)
+            .map { "\($0) news" }
+            .bind(to: titleLabel.rx.text)
+            .disposed(by: disposeBag)
+        
         viewModel.articles
             .observe(on: MainScheduler.instance)
             .bind(to: articlesTableView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
@@ -90,7 +95,7 @@ class TopHeadlinesViewController: UIViewController {
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
-              self?.present(safariViewController, animated: true)
+                self?.present(safariViewController, animated: true)
             })
             .disposed(by: disposeBag)
         
@@ -110,7 +115,7 @@ class TopHeadlinesViewController: UIViewController {
         NSLayoutConstraint.activate([
             navigationView.topAnchor.constraint(equalTo: self.view.topAnchor),
             navigationView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            navigationView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
+            navigationView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.175),
             navigationView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
         ])
     }
@@ -131,7 +136,7 @@ class TopHeadlinesViewController: UIViewController {
         NSLayoutConstraint.activate([
             articlesTableView.bottomAnchor.constraint(equalTo: self.menuView.topAnchor),
             articlesTableView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            articlesTableView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.7),
+            articlesTableView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.67),
             articlesTableView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9)
         ])
     }
@@ -149,7 +154,7 @@ class TopHeadlinesViewController: UIViewController {
 }
 
 // Launches Flow Layout Setup
-extension TopHeadlinesViewController: UICollectionViewDelegateFlowLayout {
+extension SearchViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     }

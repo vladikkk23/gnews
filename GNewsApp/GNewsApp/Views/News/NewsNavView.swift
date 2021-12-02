@@ -7,7 +7,7 @@
 
 import UIKit
 
-class NavigationView: UIView {
+class NewsNavView: UIView {
     // MARK: - Propeties
     lazy var titleLabel: UILabel = {
         let label = UILabel()

@@ -10,7 +10,10 @@ import RxSwift
 import RxCocoa
 
 struct ArticleCellViewModel {
+    
+    public let count = PublishSubject<Int>()
     public let articles = PublishSubject<[ArticleModel]>()
+    public let selectedArticle = PublishSubject<ArticleModel>()
 
     private let disposeBag = DisposeBag()
 
@@ -68,6 +71,14 @@ struct ArticleCellViewModel {
         
         result
             .subscribe(onNext: { articles.onNext($0.articles) })
+            .disposed(by: disposeBag)
+        
+        count.asObservable()
+            .subscribe(onNext: { print($0) })
+            .disposed(by: disposeBag)
+        
+        result
+            .subscribe(onNext: { count.onNext($0.totalArticles) })
             .disposed(by: disposeBag)
     }
 }

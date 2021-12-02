@@ -18,29 +18,20 @@ extension UIImage {
     }
 }
 
-
-
-// Cache images
-//let imageCache = NSCache<NSString, UIImage>()
-//
-//extension UIImageView {
-//    func loadImage(withUrl url: URL) {
-//        if let cachedImage = imageCache.object(forKey: NSString(string: url.absoluteString)) {
-//            self.image = cachedImage
-//            return
-//        }
-//
-//        DispatchQueue.global().async { [weak self] in
-//            if let imageData = try? Data(contentsOf: url) {
-//                if let image = UIImage(data: imageData) {
-//                    DispatchQueue.main.async {
-//                        imageCache.setObject(image, forKey: NSString(string: url.absoluteString))
-//
-//                        self?.image = image
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
+extension UIViewController {
+    func configureDismissKeyboard() {
+        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:))))
+    }
+    
+    @objc private func handleTap(sender: UITapGestureRecognizer? = nil) {
+        sender?.view?.endEditing(true)
+    }
+    
+    func presentOnTop(_ viewController: UIViewController, animated: Bool) {
+        var topViewController = self
+        while let presentedViewController = topViewController.presentedViewController {
+            topViewController = presentedViewController
+        }
+        topViewController.present(viewController, animated: animated)
+    }
+}
