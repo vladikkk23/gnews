@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  NewsViewController.swift
 //  GNewsApp
 //
 //  Created by vladikkk on 26/11/2021.
@@ -167,6 +167,15 @@ extension NewsViewController {
         articlesTableView.rx.itemSelected
             .subscribe(onNext: { indexPath in
                 self.articlesTableView.deselectItem(at: indexPath, animated: true)
+            })
+            .disposed(by: disposeBag)
+        
+        // Open webview
+        articlesTableView.rx.modelSelected(ArticleModel.self)
+            .compactMap { URL(string: $0.url) }
+            .map { SFSafariViewController(url: $0) }
+            .subscribe(onNext: { [weak self] safariViewController in
+                self?.present(safariViewController, animated: true)
             })
             .disposed(by: disposeBag)
         
