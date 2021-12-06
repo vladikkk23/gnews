@@ -54,19 +54,44 @@ class TopHeadlinesRequest: APIRequest {
     }
 }
 
+// MARK: - TopHeadlines Request
+class SearchRequest: APIRequest {
+    var method: RequestType = .GET
+    var endpoint: String = "search"
+    var parameters: [String : String] = [String : String]()
+    
+    init(token: String, title: String, filters: [ArticleFilterEnum]?, sort: ArticleSortEnum?) {
+        parameters["q"] = title
+        
+        // Get filters & sort type
+        if let filters = filters {
+            filters.forEach { filter in
+                if let filterStr = filter.getFilters() {
+                    //                    parameters[""] += filterStr.joined()
+                    print(filterStr)
+                }
+            }
+            
+            parameters["token"] = token
+            parameters["lang"] = "en"
+        }
+    }
+}
 // MARK: - Web Service
 class WebService {
-    // Mark: - Shared instance
+    // MARK: - Shared instance
     static let shared = WebService()
     
-    // Mark: - Initializers
+    // MARK: - Initializers
     private init () {}
     
-    // Mark: - Properties
+    // MARK: - Properties
     private let baseURL = URL(string: "https://gnews.io/api/v4")!
     private let APIToken = ""
     
-    // Mark: - Methods
+    // MARK: - Methods
+    
+    // MARK: - Genereic request handler
     private func handleRequest<T: Codable>(request: URLRequest) -> Observable<T> {
         return URLSession.shared.rx.data(request: request)
             .map { data in
@@ -75,8 +100,16 @@ class WebService {
             .observe(on: MainScheduler.instance)
     }
     
+    // MARK: - Get top headlines request
     func getTopHeadlines<T: Codable>() -> Observable<T> {
         let request = TopHeadlinesRequest(token: APIToken).request(with: baseURL)
+        
+        return handleRequest(request: request)
+    }
+    
+    // MARK: - Get search result request
+    func getSearchResult<T: Codable>(title: String) -> Observable<T> {
+        let request = SearchRequest(token: APIToken, title: title, filters: [.date(.from("From.Date"), .to("To.Date"))], sort: .relevance).request(with: baseURL)
         
         return handleRequest(request: request)
     }
@@ -84,13 +117,13 @@ class WebService {
     //    func searchForArticle(title: String, filters: [ArticleFilterEnum]?, sort: ArticleSortEnum?, completion: @escaping (NewsModel) -> Void) {
     //        var searchUrlString = baseURLString + "search?&q=\(title)"
     //
-    //        // Get filters & sort type
-    //        if let filters = filters {
-    //            filters.forEach { filter in
-    //                if let filterStr = filter.getFilters() {
-    //                    searchUrlString += filterStr.joined()
+    //            // Get filters & sort type
+    //            if let filters = filters {
+    //                filters.forEach { filter in
+    //                    if let filterStr = filter.getFilters() {
+    //                        searchUrlString += filterStr.joined()
+    //                    }
     //                }
-    //            }
     //
     //            if let sortString = sort?.rawValue {
     //                searchUrlString += "&sortby=\(sortString)"

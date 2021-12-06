@@ -12,13 +12,17 @@ import SafariServices
 
 class NewsViewController: UIViewController {
     // MARK: - Properties
-    var viewModel = ArticleCellViewModel()
+    var viewModel: NewsViewModel! {
+        didSet {
+            bindData()
+        }
+    }
     
     private let disposeBag = DisposeBag()
     
     // UI
     lazy var navigationView: UIView = {
-        let view = NewsNavView(frame: .zero)
+        let view = CommonNavigationView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .white
         view.layer.masksToBounds = false
@@ -37,52 +41,38 @@ class NewsViewController: UIViewController {
         return label
     }()
     
-    lazy var articlesTableView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    lazy var articlesView: ArticlesCollectionView = {
+        let view = ArticlesCollectionView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .clear
-        view.isPagingEnabled = false
-        view.isScrollEnabled = true
-        view.showsVerticalScrollIndicator = false
-        view.register(ArticleTableViewCell.self, forCellWithReuseIdentifier: ArticleTableViewCell.CELL_IDENTIFIER)
         view.backgroundColor = .clear
         return view
     }()
     
-    lazy var menuView: UIView = {
+    lazy var menuView: MenuView = {
         let view = MenuView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .clear
+        view.backgroundColor = .white
+        view.layer.masksToBounds = false
+        view.layer.shadowRadius = 5
+        view.layer.shadowOpacity = 0.25
+        view.layer.shadowColor = UIColor.lightGray.cgColor
+        view.layer.shadowOffset = CGSize(width: 0 , height: -5)
         return view
     }()
     
     // MARK: - Methods
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        self.view.backgroundColor = UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        setupUI()
-        bindTableData()
+        view.backgroundColor = UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
         
-        articlesTableView
-            .rx.delegate
-            .setForwardToDelegate(self, retainDelegate: false)
+        setupUI()
     }
     
     private func setupUI() {
         setupNavigationViewLayout()
-        setupMenuViewLayout()
         setupTableViewLayout()
         setupTitleLabelLayout()
+        setupMenuViewLayout()
     }
     
     private func setupNavigationViewLayout() {
@@ -100,20 +90,19 @@ class NewsViewController: UIViewController {
         self.view.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: self.articlesTableView.leadingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: self.articlesTableView.topAnchor, constant: -5),
+            titleLabel.leadingAnchor.constraint(equalTo: self.articlesView.leadingAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: self.articlesView.topAnchor, constant: -5),
             titleLabel.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.05)
         ])
     }
     
     private func setupTableViewLayout() {
-        self.view.addSubview(articlesTableView)
+        self.view.addSubview(articlesView)
         
         NSLayoutConstraint.activate([
-            articlesTableView.bottomAnchor.constraint(equalTo: self.menuView.topAnchor),
-            articlesTableView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            articlesTableView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.7),
-            articlesTableView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9)
+            articlesView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            articlesView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.7),
+            articlesView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9)
         ])
     }
     
@@ -124,58 +113,43 @@ class NewsViewController: UIViewController {
             menuView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             menuView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             menuView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
-            menuView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
+            menuView.widthAnchor.constraint(equalTo: self.view.widthAnchor),
+            articlesView.bottomAnchor.constraint(equalTo: self.menuView.topAnchor)
         ])
-    }
-}
-
-// MARK: - Flow Layout Setup
-extension NewsViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        // Setup cell size
-        let size = articlesTableView.frame.size
-        return CGSize(width: size.width, height: size.height * 0.2)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 10.0
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0.0
     }
 }
 
 // MARK: - Binding
 extension NewsViewController {
-    func bindTableData() {
+    func bindData() {
         viewModel.articles
             .observe(on: MainScheduler.instance)
-            .bind(to: articlesTableView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
                 cell.populateCell(data: model)
             }
             .disposed(by: disposeBag)
-        
-        articlesTableView.rx.modelSelected(ArticleModel.self)
-            .bind(to: viewModel.selectedArticle)
-            .disposed(by: disposeBag)
-        
-        articlesTableView.rx.itemSelected
+
+        articlesView.articlesCollectionView.rx.itemSelected
             .subscribe(onNext: { indexPath in
-                self.articlesTableView.deselectItem(at: indexPath, animated: true)
+                self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
             })
             .disposed(by: disposeBag)
         
         // Open webview
-        articlesTableView.rx.modelSelected(ArticleModel.self)
+        articlesView.articlesCollectionView.rx.modelSelected(ArticleModel.self)
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
                 self?.present(safariViewController, animated: true)
+            })
+            .disposed(by: disposeBag)
+        
+        
+        // TO DO: Check
+        viewModel.showLoading
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isShowing in
+                self?.articlesView.loadingView.isHidden = !isShowing
             })
             .disposed(by: disposeBag)
         

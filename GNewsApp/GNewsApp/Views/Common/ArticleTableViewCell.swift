@@ -37,6 +37,7 @@ class ArticleTableViewCell: UICollectionViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
+        imageView.tintColor = .lightGray
         return imageView
     }()
     
@@ -60,6 +61,7 @@ class ArticleTableViewCell: UICollectionViewCell {
         if let url = URL(string: data.image) {
             image.image!.load(url: url)
                 .asObservable()
+                .observe(on: MainScheduler.asyncInstance)
                 .bind(to: image.rx.image)
                 .disposed(by: disposeBag)
         }

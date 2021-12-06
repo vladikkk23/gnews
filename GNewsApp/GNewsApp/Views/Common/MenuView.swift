@@ -11,6 +11,13 @@ import RxSwift
 // MARK: - Menu View
 class MenuView: UIView {
     // MARK: - Properties
+    var viewModel: NavigationViewModel! {
+        didSet {
+            setupViewModels()
+        }
+    }
+    
+    // UI
     lazy var homeButton: MenuButton = {
         let btn = MenuButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
@@ -89,6 +96,14 @@ class MenuView: UIView {
             buttonsStack.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.85)
         ])
     }
+    
+    private func setupViewModels() {
+        homeButton.viewModel = self.viewModel
+        newsButton.viewModel = self.viewModel
+        searchButton.viewModel = self.viewModel
+        profileButton.viewModel = self.viewModel
+        moreButton.viewModel = self.viewModel
+    }
 }
 
 // MARK: - Menu Button
@@ -100,9 +115,11 @@ class MenuButton: UIView {
         }
     }
     
-    var navigationViewModel = NavigationViewModel(withViewController: NewsViewController())
-    
-    var isActive = false
+    var viewModel: NavigationViewModel! {
+        didSet {
+            bindButton()
+        }
+    }
     
     private var disposeBag = DisposeBag()
     
@@ -118,7 +135,7 @@ class MenuButton: UIView {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
-        imageView.tintColor = .gray
+        imageView.tintColor = .lightGray
         return imageView
     }()
     
@@ -126,7 +143,7 @@ class MenuButton: UIView {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont(name: "Avenir", size: 12)
-        label.textColor = .gray
+        label.textColor = .lightGray
         return label
     }()
     
@@ -137,6 +154,7 @@ class MenuButton: UIView {
         setupButtonLayout()
     }
     
+    // MARK: - Setup and Bind data
     private func setupButton() {
         if let type = type {
             switch type {
@@ -156,32 +174,29 @@ class MenuButton: UIView {
                 image.image = UIImage(systemName: "ellipsis.circle.fill")
                 titleLabel.text = "More"
             }
-            
-            // Binding
-            button.rx.tap
-                .bind { [weak self] in self?.navigationViewModel.didStartNavigationTapped() }
-                .disposed(by: disposeBag)
-            
-            navigationViewModel.isViewActive
-                .bind(to: button.rx.isSelected)
-                .disposed(by: disposeBag)
-            
-            navigationViewModel.didStartNavigation
-                .subscribe(onNext: {
-                    // Navigate to selected View
-                    print("Navigate to: \(type) view")
-                })
-                .disposed(by: disposeBag)
-            
-            navigationViewModel.didFailNavigation
-                .subscribe(onNext: {
-                    // Show error
-                    print("Navigation to: \(type) view failed")
-                })
-                .disposed(by: disposeBag)
         }
         
         setupView()
+    }
+    
+    private func bindButton() {
+        if let viewType = type {
+            button.rx.tap
+                .observe(on: MainScheduler.instance)
+                .bind { [weak self] in
+                    self?.viewModel.isViewActive.onNext(viewType)
+                }
+                .disposed(by: disposeBag)
+            
+            viewModel.buttonSelected
+                .subscribe(onNext: { [weak self] in
+                    if $0 == self?.type {
+                        self?.image.tintColor = .orange
+                        self?.titleLabel.textColor = .orange
+                    }
+                })
+                .disposed(by: disposeBag)
+        }
     }
     
     private func setupButtonLayout() {
@@ -225,21 +240,4 @@ enum MenuButtonType {
     case search
     case profile
     case more
-}
-
-extension UIView {
-    
-    var viewController: UIViewController? {
-        
-        var responder: UIResponder? = self
-        
-        while responder != nil {
-            
-            if let responder = responder as? UIViewController {
-                return responder
-            }
-            responder = responder?.next
-        }
-        return nil
-    }
 }

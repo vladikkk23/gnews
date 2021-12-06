@@ -44,6 +44,6 @@ class BaseCoordinator: Coordinator {
     func didFinish(coordinator: Coordinator) {
         if let index = childCoordinators.firstIndex(where: { $0 === coordinator }) {
             childCoordinators.remove(at: index)
-        }
+        }        
     }
 }

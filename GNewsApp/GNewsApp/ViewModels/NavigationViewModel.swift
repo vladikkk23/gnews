@@ -8,36 +8,25 @@
 import UIKit
 import RxSwift
 
-protocol NavigationDelegate: AnyObject {
-    func didStartNavigation()
-    func didFailNavigation()
-}
-
 struct NavigationViewModel {
     // MARK: - Properties
-    var rootVC: UIViewController?
+    let isViewActive = PublishSubject<MenuButtonType>()
+    let buttonSelected = PublishSubject<MenuButtonType>()
+    let isFiltersViewActive = PublishSubject<Bool>()
+    let isSortViewActive = PublishSubject<Bool>()
+
     private let disposeBag = DisposeBag()
-    let isViewActive: Observable<Bool>
-    let viewType: Observable<MenuButtonType>?
-    
-    // Events
-    let didStartNavigation = PublishSubject<Void>()
-    let didFailNavigation = PublishSubject<Void>()
-    
-    // MARK: - Initializers
-    init(withViewController vc: UIViewController) {
-        rootVC = vc
-        isViewActive = Observable.just(true)
-        viewType = Observable.just(.news)
-    }
     
     // MARK: - Methods
     func didStartNavigationTapped() {
-        if rootVC != nil {
-            didStartNavigation.onNext(())
-        } else {
-            // MARK: - TO DO -> Implement error
-            didFailNavigation.onNext(())
-        }
+        // Only use this method to show main view controller.
+        isViewActive
+            .subscribe(onNext: {
+                buttonSelected.onNext($0)
+            })
+            .disposed(by: disposeBag)
+        
+        isViewActive
+            .onNext(.news)
     }
 }

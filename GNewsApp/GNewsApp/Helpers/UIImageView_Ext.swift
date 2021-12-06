@@ -9,12 +9,11 @@ import UIKit
 import RxSwift
 
 extension UIImage {
-    func load(url: URL) -> Single<UIImage?> {
+    func load(url: URL) -> Observable<UIImage?> {
         return URLSession.shared.rx
             .data(request: URLRequest(url: url))
                 .map { data in UIImage(data: data) }
-                .asSingle()
-                .catchAndReturn(nil)
+                .asObservable()
     }
 }
 
