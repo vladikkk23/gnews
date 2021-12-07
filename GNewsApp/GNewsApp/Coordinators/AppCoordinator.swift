@@ -37,6 +37,7 @@ class AppCoordinator: BaseCoordinator {
         guard let viewModel = navigationViewModel else { return }
         
         viewModel.isViewActive
+            .subscribe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] viewType in
                 guard let self = self else { return }
                 
@@ -52,6 +53,20 @@ class AppCoordinator: BaseCoordinator {
             .disposed(by: disposeBag)
         
         viewModel.isFiltersViewActive
+            .subscribe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if isActive {
+                    self.showFiltersView()
+                } else {
+                    self.navigationViewModel.didCloseFiltersView()
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.isContentFilterViewActive
+            .subscribe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] isActive in
                 guard let self = self else { return }
                 

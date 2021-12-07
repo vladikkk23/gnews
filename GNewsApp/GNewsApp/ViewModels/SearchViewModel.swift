@@ -20,6 +20,9 @@ class SearchViewModel {
     let clearFilters = PublishSubject<Void>()
     
     let isDateSelected = PublishSubject<Bool>()
+    let fromDateSelected = PublishSubject<String>()
+    let toDateSelected = PublishSubject<String>()
+    
     let isRelevanceSelected = PublishSubject<Bool>()
     
     // Loading

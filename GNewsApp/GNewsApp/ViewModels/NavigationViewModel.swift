@@ -12,14 +12,17 @@ struct NavigationViewModel {
     // MARK: - Properties
     let isViewActive = PublishSubject<MenuButtonType>()
     let buttonSelected = PublishSubject<MenuButtonType>()
-    let isFiltersViewActive = PublishSubject<Bool>()
+    
     let isSortViewActive = PublishSubject<Bool>()
+    
+    let isFiltersViewActive = PublishSubject<Bool>()
+    let isContentFilterViewActive = PublishSubject<Bool>()
 
     private let disposeBag = DisposeBag()
     
     // MARK: - Methods
     func didStartNavigationTapped() {
-        // Only use this method to show main view controller.
+        // MARK: - Only use this method to show main view controller.
         isViewActive
             .subscribe(onNext: {
                 buttonSelected.onNext($0)
@@ -28,5 +31,11 @@ struct NavigationViewModel {
         
         isViewActive
             .onNext(.news)
+    }
+    
+    func didCloseFiltersView() {
+        // MARK: - Only use this method to when filter view is closed
+        isViewActive
+            .onNext(.search)
     }
 }

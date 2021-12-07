@@ -29,6 +29,7 @@ class FiltersNavigationView: UIView {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
         btn.setImage(UIImage(systemName: "chevron.backward"), for: .normal)
+        btn.imageView?.translatesAutoresizingMaskIntoConstraints = false
         btn.tintColor = .orange
         return btn
     }()
@@ -76,10 +77,15 @@ class FiltersNavigationView: UIView {
         addSubview(backButton)
         
         NSLayoutConstraint.activate([
-            backButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10),
+            backButton.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             backButton.centerYAnchor.constraint(equalTo: self.titleLabel.centerYAnchor),
             backButton.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
-            backButton.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.3)
+//            backButton.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
+            
+            // Set button image constraints
+            backButton.imageView!.leadingAnchor.constraint(equalTo: backButton.leadingAnchor),
+            backButton.imageView!.heightAnchor.constraint(equalTo: backButton.heightAnchor, multiplier: 0.5),
+            backButton.imageView!.widthAnchor.constraint(equalTo: backButton.heightAnchor, multiplier: 0.3)
         ])
     }
     
@@ -97,10 +103,10 @@ class FiltersNavigationView: UIView {
         addSubview(clearButton)
         
         NSLayoutConstraint.activate([
-            clearButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
+            clearButton.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             clearButton.centerYAnchor.constraint(equalTo: self.titleLabel.centerYAnchor, constant: 5),
             clearButton.heightAnchor.constraint(equalTo: self.titleLabel.heightAnchor),
-            clearButton.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.175)
+            clearButton.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.22)
         ])
     }
 }
@@ -172,8 +178,8 @@ class ClearButton: UIView {
     
     // MARK: - Methods
     private func setupView() {
-        setupTitleLabelLayout()
         setupImageLayout()
+        setupTitleLabelLayout()
         setupButtonLayout()
     }
     
@@ -193,9 +199,9 @@ class ClearButton: UIView {
         
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: image.leadingAnchor, constant: -10),
             titleLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            titleLabel.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.4),
-            titleLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.5)
+            titleLabel.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.4)
         ])
     }
     

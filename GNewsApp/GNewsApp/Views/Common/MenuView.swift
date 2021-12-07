@@ -11,13 +11,6 @@ import RxSwift
 // MARK: - Menu View
 class MenuView: UIView {
     // MARK: - Properties
-    var viewModel: NavigationViewModel! {
-        didSet {
-            setupViewModels()
-        }
-    }
-    
-    // UI
     lazy var homeButton: MenuButton = {
         let btn = MenuButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
@@ -96,18 +89,10 @@ class MenuView: UIView {
             buttonsStack.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.85)
         ])
     }
-    
-    private func setupViewModels() {
-        homeButton.viewModel = self.viewModel
-        newsButton.viewModel = self.viewModel
-        searchButton.viewModel = self.viewModel
-        profileButton.viewModel = self.viewModel
-        moreButton.viewModel = self.viewModel
-    }
 }
 
 // MARK: - Menu Button
-class MenuButton: UIView {
+internal class MenuButton: UIView {
     // MARK: - Properties
     var type: MenuButtonType? {
         didSet {
@@ -115,15 +100,7 @@ class MenuButton: UIView {
         }
     }
     
-    var viewModel: NavigationViewModel! {
-        didSet {
-            bindButton()
-        }
-    }
-    
-    private var disposeBag = DisposeBag()
-    
-    // UI
+    // MARK: - UI
     lazy var button: UIButton = {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
@@ -179,26 +156,6 @@ class MenuButton: UIView {
         setupView()
     }
     
-    private func bindButton() {
-        if let viewType = type {
-            button.rx.tap
-                .observe(on: MainScheduler.instance)
-                .bind { [weak self] in
-                    self?.viewModel.isViewActive.onNext(viewType)
-                }
-                .disposed(by: disposeBag)
-            
-            viewModel.buttonSelected
-                .subscribe(onNext: { [weak self] in
-                    if $0 == self?.type {
-                        self?.image.tintColor = .orange
-                        self?.titleLabel.textColor = .orange
-                    }
-                })
-                .disposed(by: disposeBag)
-        }
-    }
-    
     private func setupButtonLayout() {
         addSubview(button)
         
@@ -234,7 +191,7 @@ class MenuButton: UIView {
 }
 
 // MARK: - Menu Button Type
-enum MenuButtonType {
+internal enum MenuButtonType {
     case home
     case news
     case search

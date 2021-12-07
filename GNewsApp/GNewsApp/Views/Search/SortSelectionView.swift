@@ -11,21 +11,6 @@ import RxSwift
 // MARK: - SortSelectionView
 class SortSelectionView: UIView {
     // MARK: - Propeties
-    var viewModel: SearchViewModel! {
-        didSet {
-            bindButtons()
-        }
-    }
-    
-    var navigationViewModel: NavigationViewModel! {
-        didSet {
-            bindNavigationData()
-        }
-    }
-    
-    private let disposeBag = DisposeBag()
-    
-    // UI
     lazy var sortByCell: SortSelectionViewCell = {
         let view = SortSelectionViewCell()
         view.topBorderView.isHidden = true
@@ -88,92 +73,6 @@ class SortSelectionView: UIView {
             buttonsStack.topAnchor.constraint(equalTo: self.topAnchor),
             buttonsStack.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.9)
         ])
-    }
-    
-    private func bindButtons() {
-        dateCell.button.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.viewModel.isDateSelected.onNext(true)
-            }
-            .disposed(by: disposeBag)
-        
-        relevanceCell.button.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.viewModel.isRelevanceSelected.onNext(true)
-            }
-            .disposed(by: disposeBag)
-        
-        viewModel.isDateSelected
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] toogle in
-                guard let self = self else { return }
-                
-                if !toogle {
-                    self.dateCell.selectionIndicator.layer.borderColor = UIColor.clear.cgColor
-                    self.dateCell.selectionIndicator.backgroundColor = .lightGray
-                    self.dateCell.selectionIndicator.alpha = 0.25
-                } else {
-                    self.dateCell.selectionIndicator.layer.borderColor = UIColor.orange.cgColor
-                    self.dateCell.selectionIndicator.backgroundColor = .white
-                    self.dateCell.selectionIndicator.alpha = 1
-                    
-                    self.viewModel.isRelevanceSelected.onNext(false)
-                }
-            })
-            .disposed(by: disposeBag)
-        
-        viewModel.isRelevanceSelected
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] toogle in
-                guard let self = self else { return }
-                
-                if !toogle {
-                    self.relevanceCell.selectionIndicator.layer.borderColor = UIColor.clear.cgColor
-                    self.relevanceCell.selectionIndicator.backgroundColor = .lightGray
-                    self.relevanceCell.selectionIndicator.alpha = 0.25
-                } else {
-                    self.relevanceCell.selectionIndicator.layer.borderColor = UIColor.orange.cgColor
-                    self.relevanceCell.selectionIndicator.backgroundColor = .white
-                    self.relevanceCell.selectionIndicator.alpha = 1
-                    
-                    self.viewModel.isDateSelected.onNext(false)
-                }
-            })
-            .disposed(by: disposeBag)
-    }
-    
-    private func bindNavigationData() {
-        navigationViewModel.isSortViewActive
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] toogle in
-                guard let self = self else { return }
-                
-                self.shift(duration: TimeInterval(1), toogle: toogle)
-                
-                if !toogle {
-                    self.viewModel.fetchItems()
-                }
-            })
-            .disposed(by: disposeBag)
-    }
-}
-
-// MARK: - Extension to animate view toogle event
-extension SortSelectionView {
-    func shift(duration: TimeInterval, toogle: Bool) {
-        UIView.animate(withDuration: duration) {
-            if toogle {
-                self.frame = self.frame.offsetBy(dx: 0, dy: -self.frame.size.height)
-            } else {
-                self.frame = self.frame.offsetBy(dx: 0, dy: self.frame.size.height)
-            }
-        }
     }
 }
 

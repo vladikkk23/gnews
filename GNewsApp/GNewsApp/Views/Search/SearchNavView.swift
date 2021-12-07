@@ -11,22 +11,6 @@ import RxSwift
 // MARK: - SearchNavigationView
 class SearchNavigationView: UIView {
     // MARK: - Propeties
-    var viewModel: SearchViewModel! {
-        didSet {
-            searchView.viewModel = viewModel
-            bindData()
-        }
-    }
-    
-    var navigationViewModel: NavigationViewModel! {
-        didSet {
-            bindFiltersNavigation()
-        }
-    }
-    
-    private let disposeBag = DisposeBag()
-    
-    // UI
     lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -172,70 +156,9 @@ class SearchNavigationView: UIView {
     }
 }
 
-// MARK: - SearchView Extension to bind data
-extension SearchNavigationView {
-    private func bindData() {
-        filtersButton.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                self.filtersButton.isSelected.toggle()
-                
-                self.navigationViewModel.isFiltersViewActive.onNext(self.filtersButton.isSelected)
-            }
-            .disposed(by: disposeBag)
-        
-        navigationViewModel.isFiltersViewActive
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] in
-                guard let self = self else { return }
-                
-                self.filtersButton.tintColor = $0 ? .white : .black
-                self.filtersButton.backgroundColor = $0 ? .orange : UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
-            })
-            .disposed(by: disposeBag)
-        
-        sortButton.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                self.sortButton.isSelected.toggle()
-                
-                self.navigationViewModel.isSortViewActive.onNext(self.sortButton.isSelected)
-                
-            }
-            .disposed(by: disposeBag)
-        
-        navigationViewModel.isSortViewActive
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] in
-                guard let self = self else { return }
-                
-                self.sortButton.tintColor = $0 ? .white : .black
-                self.sortButton.backgroundColor = $0 ? .orange : UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
-                
-                self.viewModel.isDateSelected.onNext(true)
-            })
-            .disposed(by: disposeBag)
-    }
-    
-    private func bindFiltersNavigation() {
-        
-    }
-}
-
 // MARK: - SearchView
 internal class SearchView: UIView {
     // MARK: - Propeties
-    var viewModel: SearchViewModel! {
-        didSet {
-            bindData()
-        }
-    }
-    
-    private let disposeBag = DisposeBag()
-    
-    // UI
     lazy var image: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "magnifyingglass")
@@ -320,19 +243,5 @@ extension SearchNavigationView {
 extension SearchView: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         return textField.endEditing(true)
-    }
-}
-
-// MARK: - SearchView Extension to bind data
-extension SearchView {
-    private func bindData() {
-        textField.rx.text
-            .observe(on: MainScheduler.asyncInstance)
-            .bind { [weak self] str in
-                if let searchString = str, searchString.count > 0 {
-                    self?.viewModel?.isSearching.onNext(searchString)
-                }
-            }
-            .disposed(by: disposeBag)
     }
 }

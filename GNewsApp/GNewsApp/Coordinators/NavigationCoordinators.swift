@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import RxSwift
 
 class NewsCoordinator: BaseCoordinator {
     // MARK: - Properties
@@ -13,7 +14,7 @@ class NewsCoordinator: BaseCoordinator {
     
     // MARK: - Initializers
     init(viewModel: NavigationViewModel) {
-        rootVC.menuView.viewModel = viewModel
+        rootVC.navigationViewModel = viewModel
     }
     
     // MARK: - Methods
@@ -51,7 +52,7 @@ class InDevelopmentCoordinator: BaseCoordinator {
     
     // MARK: - Initializers
     init(viewModel: NavigationViewModel) {
-        rootVC.menuView.viewModel = viewModel
+        rootVC.navigationViewModel = viewModel
     }
     
     // MARK: - Methods
@@ -72,6 +73,14 @@ class FiltersCoordinator: BaseCoordinator {
     
     // MARK: - Methods
     override func start() {
+        let dataViewModel = SearchViewModel()
+        rootVC.viewModel = dataViewModel
+        
+        navigationController.isNavigationBarHidden = true
+        navigationController.viewControllers = [rootVC]
+    }
+    
+    func navigateTo(viewController: UIViewController) {
         let dataViewModel = SearchViewModel()
         rootVC.viewModel = dataViewModel
         

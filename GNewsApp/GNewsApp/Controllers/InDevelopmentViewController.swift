@@ -6,9 +6,19 @@
 //
 
 import UIKit
+import RxSwift
 
 class InDevelopmentViewController: UIViewController {
     // MARK: - Properties
+    var navigationViewModel: NavigationViewModel! {
+        didSet {
+            bindNavigationData()
+        }
+    }
+    
+    private let disposeBag = DisposeBag()
+    
+    // MARK: - UI
     lazy var navigationView: UIView = {
         let view = CommonNavigationView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -109,5 +119,35 @@ class InDevelopmentViewController: UIViewController {
             menuView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
             menuView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
         ])
+    }
+}
+
+// MARK: - Bind Navigation Data
+extension InDevelopmentViewController {
+    private func bindNavigationData() {
+        bindMenuButtonsData()
+    }
+    
+    private func bindMenuButtonsData() {
+        menuView.buttonsStack.arrangedSubviews.forEach({
+            if let btn = $0 as? MenuButton, let viewType = btn.type {
+                btn.button.rx.tap
+                    .observe(on: MainScheduler.instance)
+                    .bind { [weak self] in
+                        self?.navigationViewModel.isViewActive.onNext(viewType)
+                    }
+                    .disposed(by: disposeBag)
+                
+                navigationViewModel.buttonSelected
+                    .observe(on: MainScheduler.instance)
+                    .subscribe(onNext: {
+                        if $0 == viewType {
+                            btn.image.tintColor = .orange
+                            btn.titleLabel.textColor = .orange
+                        }
+                    })
+                    .disposed(by: disposeBag)
+            }
+        })
     }
 }

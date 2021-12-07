@@ -7,11 +7,16 @@
 
 import UIKit
 import RxSwift
-import RxCocoa
 import SafariServices
 
 class NewsViewController: UIViewController {
     // MARK: - Properties
+    var navigationViewModel: NavigationViewModel! {
+        didSet {
+            bindNavigationData()
+        }
+    }
+    
     var viewModel: NewsViewModel! {
         didSet {
             bindData()
@@ -20,7 +25,7 @@ class NewsViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
     
-    // UI
+    // MARK: - UI
     lazy var navigationView: UIView = {
         let view = CommonNavigationView(frame: .zero)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -119,33 +124,55 @@ class NewsViewController: UIViewController {
     }
 }
 
-// MARK: - Binding
+// MARK: - Bind Navigation Data
 extension NewsViewController {
-    func bindData() {
-        viewModel.articles
-            .observe(on: MainScheduler.instance)
-            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
-                cell.populateCell(data: model)
-            }
-            .disposed(by: disposeBag)
-
-        articlesView.articlesCollectionView.rx.itemSelected
-            .subscribe(onNext: { indexPath in
-                self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
-            })
-            .disposed(by: disposeBag)
-        
-        // Open webview
+    private func bindNavigationData() {
+        bindArticlesViewNavigationData()
+        bindMenuButtonsData()
+    }
+    
+    private func bindArticlesViewNavigationData() {
+        // Open web view
         articlesView.articlesCollectionView.rx.modelSelected(ArticleModel.self)
+            .observe(on: MainScheduler.instance)
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
                 self?.present(safariViewController, animated: true)
             })
             .disposed(by: disposeBag)
+    }
+    
+    private func bindMenuButtonsData() {
+        menuView.buttonsStack.arrangedSubviews.forEach({
+            if let btn = $0 as? MenuButton, let viewType = btn.type {
+                btn.button.rx.tap
+                    .observe(on: MainScheduler.instance)
+                    .bind { [weak self] in
+                        self?.navigationViewModel.isViewActive.onNext(viewType)
+                    }
+                    .disposed(by: disposeBag)
+                
+                navigationViewModel.buttonSelected
+                    .observe(on: MainScheduler.instance)
+                    .subscribe(onNext: {
+                        if $0 == viewType {
+                            btn.image.tintColor = .orange
+                            btn.titleLabel.textColor = .orange
+                        }
+                    })
+                    .disposed(by: disposeBag)
+            }
+        })
+    }
+}
+
+// MARK: - Bind View Data
+extension NewsViewController {
+    private func bindData() {
+        bindArticlesViewData()
         
-        
-        // TO DO: Check
+        // MARK: - TO DO -> Check loading view method
         viewModel.showLoading
             .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] isShowing in
@@ -153,6 +180,23 @@ extension NewsViewController {
             })
             .disposed(by: disposeBag)
         
+        // MARK: - TO DO -> Refactor fetch items method
         viewModel.fetchItems()
+    }
+    
+    private func bindArticlesViewData() {
+        viewModel.articles
+            .observe(on: MainScheduler.instance)
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
+                cell.populateCell(data: model)
+            }
+            .disposed(by: disposeBag)
+        
+        articlesView.articlesCollectionView.rx.itemSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { indexPath in
+                self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
+            })
+            .disposed(by: disposeBag)
     }
 }
