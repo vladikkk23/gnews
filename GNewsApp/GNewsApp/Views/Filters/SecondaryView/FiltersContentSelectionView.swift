@@ -103,7 +103,7 @@ internal class FilterSwitchView: UIView {
     lazy var valueSwitch: UISwitch = {
         let view = UISwitch()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.tintColor = .orange
+        view.onTintColor = .orange
         return view
     }()
     

@@ -8,6 +8,7 @@ target 'GNewsApp' do
   # Pods for GNewsApp
   pod 'RxSwift'
   pod 'RxCocoa'
+  pod 'RealmSwift'
 
   target 'GNewsAppTests' do
     inherit! :search_paths

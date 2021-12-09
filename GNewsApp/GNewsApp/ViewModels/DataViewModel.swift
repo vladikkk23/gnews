@@ -1,5 +1,5 @@
 //
-//  SearchViewModel.swift
+//  DataViewModel.swift
 //  GNewsApp
 //
 //  Created by vladikkk on 04/12/2021.
@@ -7,11 +7,17 @@
 
 import Foundation
 import RxSwift
+import RealmSwift
 
-class SearchViewModel {
+class DataViewModel {
     // MARK: - Properties
+    let storage = StorageService()
+    var persistentNewsData = PersistentNewsModel()
+    var persistentFiltersData = PersistenFiltersModel()
+    
     public let count = PublishSubject<Int>()
     public let articles = PublishSubject<[ArticleModel]>()
+    public let news = PublishSubject<NewsModel>()
     public let selectedArticle = PublishSubject<ArticleModel>()
     
     private let disposeBag = DisposeBag()
@@ -25,23 +31,22 @@ class SearchViewModel {
     
     let isRelevanceSelected = PublishSubject<Bool>()
     
-    // Loading
-    let showLoading = PublishSubject<Bool>()
-    
     // MARK: - Initializers
     init() {
-        isSearching
-            .subscribe(onNext: { [weak self] in
-                self?.search(title: $0)
+        fetchItems()
+        
+        news
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] news in
+                guard let self = self else { return }
+                
+                self.writeDataToPersistenceStorage(news: news)
             })
             .disposed(by: disposeBag)
     }
     
     // MARK: - Methods
     func fetchItems() {
-        showLoading
-            .onNext(true)
-        
         //        let result: Observable<NewsModel> = WebService.shared.getTopHeadlines()
         
         let models: [ArticleModel] = [
@@ -90,30 +95,57 @@ class SearchViewModel {
         let result: Observable<NewsModel> = Observable.just(NewsModel(totalArticles: 5, articles: models))
         
         result
-            .subscribe(onNext: { [weak self] in
-                self?.articles.onNext($0.articles)
-                self?.count.onNext($0.totalArticles)
-            })
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe { [weak self] news in
+                guard let self = self else { return }
+                
+                self.news.onNext(news)
+            } onError: { [weak self] err in
+                guard let self = self else { return }
+                
+                let error = err as NSError
+                
+                switch error.code {
+                case 100...500:
+                    self.fetchItems()
+                default:
+                    self.fetchItemsFromPersistenceStorage()
+                }
+            }
             .disposed(by: disposeBag)
         
-        showLoading
-            .onNext(false)
     }
     
-    func search(title: String) {
-        showLoading
-            .onNext(true)
+    // MARK: - Write new data to storage
+    private func writeDataToPersistenceStorage(news: NewsModel) {
+        persistentNewsData = persistentNewsData.getData(fromCodable: news)
         
+        let isSuccess = storage.write(persistentNewsData)
+        
+        if isSuccess {
+            fetchItemsFromPersistenceStorage()
+        }
+    }
+    
+    // MARK: - Read data from storage
+    private func fetchItemsFromPersistenceStorage() {
+        if let objects: PersistentNewsModel = storage.object(.news), let news = objects.getDatafromPersistant() {
+            articles.onNext(news.articles)
+            count.onNext(news.totalArticles)
+        }
+    }
+    
+    // MARK: - Perform search and fetch result
+    func search(title: String) {
         let result: Observable<NewsModel> = WebService.shared.getSearchResult(title: title)
         
         result
             .subscribe(onNext: { [weak self] in
-                self?.articles.onNext($0.articles)
-                self?.count.onNext($0.totalArticles)
+                guard let self = self else { return }
+                
+                self.articles.onNext($0.articles)
+                self.count.onNext($0.totalArticles)
             })
             .disposed(by: disposeBag)
-        
-        showLoading
-            .onNext(false)
     }
 }

@@ -16,7 +16,7 @@ class FiltersViewController: UIViewController {
         }
     }
     
-    var viewModel: SearchViewModel! {
+    var viewModel: DataViewModel! {
         didSet {
             bindData()
         }
@@ -28,6 +28,8 @@ class FiltersViewController: UIViewController {
     lazy var filtersInputView: MainFiltersView = {
         let view = MainFiltersView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.filtersView.fromDateInputView.inputDateView.datePicker.addTarget(self, action: #selector(fromDatePickerChanged(sender:)), for: .valueChanged)
+        view.filtersView.toDateInputView.inputDateView.datePicker.addTarget(self, action: #selector(toDatePickerChanged(sender:)), for: .valueChanged)
         return view
     }()
     
@@ -75,7 +77,7 @@ class FiltersViewController: UIViewController {
     }
 }
 
-// MARK: - Extension to hide contentFiltersSelectionView before controller did load
+// MARK: - Extension to hide sortSelectionView before view did load
 extension FiltersViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -88,6 +90,7 @@ extension FiltersViewController {
 extension FiltersViewController {
     private func bindNavigationData() {
         bindFiltersInputViewNavigationData()
+        bindContentFiltersSelectionViewNavigationData()
     }
     
     private func bindFiltersInputViewNavigationData() {
@@ -96,7 +99,45 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.navigationViewModel.isFiltersViewActive.onNext(false)
+                self.navigationViewModel.isFiltersViewActive.onNext(.none)
+            }
+            .disposed(by: disposeBag)
+        
+        filtersInputView.filtersView.searchInButton.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.shift(duration: 1, toogle: true, offset: CGPoint(x: self.view.frame.width, y: 0))
+            }
+            .disposed(by: disposeBag)
+        
+        filtersInputView.applyButton.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.navigationViewModel.primaryFilterSelected.onNext("Primary Filters Selected")
+            }
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindContentFiltersSelectionViewNavigationData() {
+        contentFiltersSelectionView.navigationView.backButton.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.navigationViewModel.isFiltersViewActive.onNext(.primary)
+            }
+            .disposed(by: disposeBag)
+        
+        contentFiltersSelectionView.applyButton.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.navigationViewModel.secondaryFiltersSelected.onNext("Secondary Filters Selected")
             }
             .disposed(by: disposeBag)
     }
@@ -105,6 +146,96 @@ extension FiltersViewController {
 // MARK: - Bind View Data
 extension FiltersViewController {
     private func bindData() {
+        bindFiltersInputViewData()
+        bindContentFiltersSelectionViewData()
+    }
+    
+    private func bindFiltersInputViewData() {
+        filtersInputView.navigationView.clearButton.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.viewModel.clearFilters.onNext(())
+            }
+            .disposed(by: disposeBag)
         
+        viewModel.fromDateSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] stringDate in
+                guard let self = self else { return }
+                
+                self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.text = stringDate
+                self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.textColor = .black
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.toDateSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] stringDate in
+                guard let self = self else { return }
+                
+                self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.text = stringDate
+                self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.textColor = .black
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindContentFiltersSelectionViewData() {
+        contentFiltersSelectionView.navigationView.clearButton.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.viewModel.clearFilters.onNext(())
+            }
+            .disposed(by: disposeBag)
+        
+        contentFiltersSelectionView.contentSelectionView.titleSwitchView.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.titleSwitchView.valueSwitch.isOn.toggle()
+            }
+            .disposed(by: disposeBag)
+        
+        contentFiltersSelectionView.contentSelectionView.contentSwitchView.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.contentSwitchView.valueSwitch.isOn.toggle()
+            }
+            .disposed(by: disposeBag)
+        
+        contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.valueSwitch.isOn.toggle()
+            }
+            .disposed(by: disposeBag)
+    }
+}
+
+extension FiltersViewController {
+    @objc func fromDatePickerChanged(sender: UIDatePicker) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let somedateString = dateFormatter.string(from: sender.date)
+        
+        viewModel.fromDateSelected
+            .onNext(somedateString)
+    }
+    
+    @objc func toDatePickerChanged(sender: UIDatePicker) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let somedateString = dateFormatter.string(from: sender.date)
+        
+        viewModel.toDateSelected
+            .onNext(somedateString)
     }
 }

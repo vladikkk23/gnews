@@ -66,7 +66,7 @@ class SecondaryFiltersView: UIView {
         NSLayoutConstraint.activate([
             navigationView.topAnchor.constraint(equalTo: self.topAnchor),
             navigationView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            navigationView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.1),
+            navigationView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.12),
             navigationView.widthAnchor.constraint(equalTo: self.widthAnchor)
         ])
     }

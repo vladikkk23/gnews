@@ -11,21 +11,6 @@ import RxSwift
 // MARK: - FiltersInputView
 class FiltersInputView: UIView {
     // MARK: - Properties
-    var navigationViewModel: NavigationViewModel! {
-        didSet {
-            bindNavigationData()
-        }
-    }
-    
-    var viewModel: SearchViewModel! {
-        didSet {
-            bindData()
-        }
-    }
-    
-    private let disposeBag = DisposeBag()
-    
-    // UI
     lazy var titleLabel: UILabel = {
         let lbl = UILabel()
         lbl.translatesAutoresizingMaskIntoConstraints = false
@@ -39,7 +24,6 @@ class FiltersInputView: UIView {
         let view = DateInputView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.titleLabel.text = "From"
-        view.inputDateView.datePicker.addTarget(self, action: #selector(fromDatePickerChanged(sender:)), for: .valueChanged)
         return view
     }()
     
@@ -47,7 +31,6 @@ class FiltersInputView: UIView {
         let view = DateInputView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.titleLabel.text = "To"
-        view.inputDateView.datePicker.addTarget(self, action: #selector(toDatePickerChanged(sender:)), for: .valueChanged)
         return view
     }()
     
@@ -119,62 +102,6 @@ class FiltersInputView: UIView {
             searchInButton.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.2),
             searchInButton.widthAnchor.constraint(equalTo: self.widthAnchor)
         ])
-    }
-}
-
-// Bind UI + send date to view model
-extension FiltersInputView {
-    private func bindData() {
-        viewModel.fromDateSelected
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] stringDate in
-                guard let self = self else { return }
-                
-                self.fromDateInputView.inputDateView.textField.text = stringDate
-                self.fromDateInputView.inputDateView.textField.textColor = .black
-            })
-            .disposed(by: disposeBag)
-        
-        viewModel.toDateSelected
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] stringDate in
-                guard let self = self else { return }
-                
-                self.toDateInputView.inputDateView.textField.text = stringDate
-                self.toDateInputView.inputDateView.textField.textColor = .black
-            })
-            .disposed(by: disposeBag)
-        
-        
-    }
-    
-    private func bindNavigationData() {
-        searchInButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.navigationViewModel.isContentFilterViewActive.onNext(true)
-            }
-            .disposed(by: disposeBag)
-    }
-    
-    @objc func fromDatePickerChanged(sender: UIDatePicker) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let somedateString = dateFormatter.string(from: sender.date)
-        
-        viewModel.fromDateSelected
-            .onNext(somedateString)
-    }
-    
-    @objc func toDatePickerChanged(sender: UIDatePicker) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let somedateString = dateFormatter.string(from: sender.date)
-        
-        viewModel.toDateSelected
-            .onNext(somedateString)
     }
 }
 

@@ -97,7 +97,7 @@ class WebService {
             .map { data in
                 try JSONDecoder().decode(T.self, from: data)
             }
-            .observe(on: MainScheduler.instance)
+            .asObservable()
     }
     
     // MARK: - Get top headlines request

@@ -13,12 +13,12 @@ class AppCoordinator: BaseCoordinator {
     private let disposeBag = DisposeBag()
     private var window: UIWindow!
     private var navigationViewModel: NavigationViewModel!
-    private var newsViewController: UIViewController!
+    private var dataViewModel: DataViewModel!
     
     // MARK: - Initializers
     override init() {
         navigationViewModel = NavigationViewModel()
-        newsViewController = NewsViewController()
+        dataViewModel = DataViewModel()
     }
     
     // MARK: - Methods
@@ -54,26 +54,14 @@ class AppCoordinator: BaseCoordinator {
         
         viewModel.isFiltersViewActive
             .subscribe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] isActive in
+            .subscribe(onNext: { [weak self] viewType in
                 guard let self = self else { return }
                 
-                if isActive {
-                    self.showFiltersView()
-                } else {
+                switch viewType {
+                case .none:
                     self.navigationViewModel.didCloseFiltersView()
-                }
-            })
-            .disposed(by: disposeBag)
-        
-        viewModel.isContentFilterViewActive
-            .subscribe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] isActive in
-                guard let self = self else { return }
-                
-                if isActive {
+                default:
                     self.showFiltersView()
-                } else {
-                    self.showSearchView()
                 }
             })
             .disposed(by: disposeBag)
@@ -82,7 +70,7 @@ class AppCoordinator: BaseCoordinator {
     private func showNewsView() {
         removeChildCoordinators()
         
-        let newsCoordinator = NewsCoordinator(viewModel: navigationViewModel)
+        let newsCoordinator = NewsCoordinator(navigationViewModel: navigationViewModel, viewModel: dataViewModel)
         start(coordinator: newsCoordinator)
         
         ViewControllerUtils.setRootViewController(window: window,
@@ -93,7 +81,7 @@ class AppCoordinator: BaseCoordinator {
     private func showSearchView() {
         removeChildCoordinators()
         
-        let searchCoordinator = SearchCoordinator(viewModel: navigationViewModel)
+        let searchCoordinator = SearchCoordinator(navigationViewModel: navigationViewModel, viewModel: dataViewModel)
         start(coordinator: searchCoordinator)
         
         ViewControllerUtils.setRootViewController(window: window,
@@ -116,7 +104,7 @@ class AppCoordinator: BaseCoordinator {
     private func showFiltersView() {
         removeChildCoordinators()
         
-        let filtersCoordinator = FiltersCoordinator(viewModel: navigationViewModel)
+        let filtersCoordinator = FiltersCoordinator(navigationViewModel: navigationViewModel, viewModel: dataViewModel)
         
         start(coordinator: filtersCoordinator)
         

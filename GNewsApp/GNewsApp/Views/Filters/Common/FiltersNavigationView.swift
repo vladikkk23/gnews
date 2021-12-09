@@ -10,21 +10,6 @@ import RxSwift
 
 class FiltersNavigationView: UIView {
     // MARK: - Propeties
-    var viewModel: SearchViewModel! {
-        didSet {
-            bindData()
-        }
-    }
-    
-    var navigationViewModel: NavigationViewModel! {
-        didSet {
-            bindNavigationData()
-        }
-    }
-    
-    private var disposeBag = DisposeBag()
-    
-    // UI
     lazy var backButton: UIButton = {
         let btn = UIButton()
         btn.translatesAutoresizingMaskIntoConstraints = false
@@ -80,7 +65,6 @@ class FiltersNavigationView: UIView {
             backButton.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             backButton.centerYAnchor.constraint(equalTo: self.titleLabel.centerYAnchor),
             backButton.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
-//            backButton.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.5),
             
             // Set button image constraints
             backButton.imageView!.leadingAnchor.constraint(equalTo: backButton.leadingAnchor),
@@ -111,33 +95,8 @@ class FiltersNavigationView: UIView {
     }
 }
 
-// MARK: - Bind data
-extension FiltersNavigationView {
-    private func bindData() {
-        clearButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.viewModel.clearFilters.onNext(())
-            }
-            .disposed(by: disposeBag)
-    }
-    
-    private func bindNavigationData() {
-        backButton.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.navigationViewModel.isFiltersViewActive.onNext(false)
-            }
-            .disposed(by: disposeBag)
-    }
-}
-
 // MARK: - Clear Button
-class ClearButton: UIView {
+internal class ClearButton: UIView {
     // MARK: Properties
     lazy var button: UIButton = {
        let btn = UIButton()

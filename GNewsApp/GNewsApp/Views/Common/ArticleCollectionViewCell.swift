@@ -8,17 +8,18 @@
 import UIKit
 import RxSwift
 
-class ArticleTableViewCell: UICollectionViewCell {
+class ArticleCollectionViewCell: UICollectionViewCell {
     // MARK: - Properties
     static let CELL_IDENTIFIER = "ArticleTableViewCell"
     
     private let disposeBag = DisposeBag()
-
+    
     // MARK: - UI
     lazy var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont(name: "Avenir-Black", size: 15)
+        label.isUserInteractionEnabled = false
         return label
     }()
     
@@ -28,6 +29,7 @@ class ArticleTableViewCell: UICollectionViewCell {
         label.font = UIFont(name: "Avenir", size: 15)
         label.lineBreakMode = .byWordWrapping
         label.numberOfLines = 2
+        label.isUserInteractionEnabled = false
         return label
     }()
     
@@ -38,6 +40,7 @@ class ArticleTableViewCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.tintColor = .lightGray
+        imageView.isUserInteractionEnabled = false
         return imageView
     }()
     
@@ -59,11 +62,7 @@ class ArticleTableViewCell: UICollectionViewCell {
         self.descriptionLabel.text = data.description
         
         if let url = URL(string: data.image) {
-            image.image!.load(url: url)
-                .asObservable()
-                .observe(on: MainScheduler.asyncInstance)
-                .bind(to: image.rx.image)
-                .disposed(by: disposeBag)
+            image.loadImage(withUrl: url)
         }
     }
     
@@ -107,7 +106,7 @@ class ArticleTableViewCell: UICollectionViewCell {
 }
 
 // MARK: - Set background color and add shadow
-extension ArticleTableViewCell {
+extension ArticleCollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         

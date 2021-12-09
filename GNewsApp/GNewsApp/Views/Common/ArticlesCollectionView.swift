@@ -21,7 +21,7 @@ class ArticlesCollectionView: UIView {
         view.isPagingEnabled = false
         view.isScrollEnabled = true
         view.showsVerticalScrollIndicator = false
-        view.register(ArticleTableViewCell.self, forCellWithReuseIdentifier: ArticleTableViewCell.CELL_IDENTIFIER)
+        view.register(ArticleCollectionViewCell.self, forCellWithReuseIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER)
         view.backgroundColor = .clear
         return view
     }()

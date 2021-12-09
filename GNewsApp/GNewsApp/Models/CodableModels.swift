@@ -1,11 +1,12 @@
 //
-//  NewsModel.swift
+//  CodableModels.swift
 //  GNewsApp
 //
 //  Created by vladikkk on 26/11/2021.
 //
 
 import Foundation
+
 // MARK: - News Model
 struct NewsModel: Codable {
     let totalArticles: Int

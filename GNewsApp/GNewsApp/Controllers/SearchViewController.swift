@@ -17,7 +17,7 @@ class SearchViewController: UIViewController {
         }
     }
     
-    var viewModel: SearchViewModel! {
+    var viewModel: DataViewModel! {
         didSet {
             bindData()
         }
@@ -49,6 +49,7 @@ class SearchViewController: UIViewController {
     lazy var articlesView: ArticlesCollectionView = {
         let view = ArticlesCollectionView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.isUserInteractionEnabled = true
         view.backgroundColor = .clear
         return view
     }()
@@ -76,13 +77,13 @@ class SearchViewController: UIViewController {
         view.layer.shadowOpacity = 0.5
         view.layer.shadowColor = UIColor.lightGray.cgColor
         view.layer.shadowOffset = CGSize(width: 0 , height: -5)
-        view.isHidden = true
         return view
     }()
     
     // MARK: - Methods
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         view.backgroundColor = UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
         
         setupUI()
@@ -151,6 +152,7 @@ class SearchViewController: UIViewController {
     }
 }
 
+// MARK: - Extension to hide sortSelectionView before view did load
 extension SearchViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -173,19 +175,20 @@ extension SearchViewController {
             .observe(on: MainScheduler.instance)
             .bind { [weak self] in
                 guard let self = self else { return }
+                
                 self.navigationView.filtersButton.isSelected.toggle()
                 
-                self.navigationViewModel.isFiltersViewActive.onNext(self.navigationView.filtersButton.isSelected)
+                self.navigationViewModel.isFiltersViewActive.onNext(.primary)
             }
             .disposed(by: disposeBag)
         
         navigationViewModel.isFiltersViewActive
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] in
+            .subscribe(onNext: { [weak self] _ in
                 guard let self = self else { return }
                 
-                self.navigationView.filtersButton.tintColor = $0 ? .white : .black
-                self.navigationView.filtersButton.backgroundColor = $0 ? .orange : UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
+                self.navigationView.filtersButton.tintColor = (self.navigationView.filtersButton.tintColor == .black) ? .white : .black
+                self.navigationView.filtersButton.backgroundColor = (self.navigationView.filtersButton.backgroundColor == .orange) ? UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1) : .orange
             })
             .disposed(by: disposeBag)
         
@@ -193,6 +196,7 @@ extension SearchViewController {
             .observe(on: MainScheduler.instance)
             .bind { [weak self] in
                 guard let self = self else { return }
+                
                 self.navigationView.sortButton.isSelected.toggle()
                 
                 self.navigationViewModel.isSortViewActive.onNext(self.navigationView.sortButton.isSelected)
@@ -218,7 +222,10 @@ extension SearchViewController {
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
-                self?.present(safariViewController, animated: true)
+                guard let self = self else {
+                    return }
+                
+                self.present(safariViewController, animated: true)
             })
             .disposed(by: disposeBag)
     }
@@ -229,7 +236,9 @@ extension SearchViewController {
                 btn.button.rx.tap
                     .observe(on: MainScheduler.instance)
                     .bind { [weak self] in
-                        self?.navigationViewModel.isViewActive.onNext(viewType)
+                        guard let self = self else { return }
+                        
+                        self.navigationViewModel.isViewActive.onNext(viewType)
                     }
                     .disposed(by: disposeBag)
                 
@@ -253,7 +262,6 @@ extension SearchViewController {
                 guard let self = self else { return }
                 
                 // Animate view transition
-                self.sortSelectionView.isHidden = false
                 self.sortSelectionView.shift(duration: 1, toogle: toogle, offset: CGPoint(x: 0, y: self.sortSelectionView.frame.height))
                 
                 if !toogle {
@@ -272,16 +280,7 @@ extension SearchViewController {
         bindArticlesViewData()
         bindSortViewData()
         bindControllerViewData()
-
-        // MARK: - TO DO -> Check loading view method
-        viewModel.showLoading
-            .observe(on: MainScheduler.asyncInstance)
-            .subscribe(onNext: { [weak self] isShowing in
-                self?.articlesView.loadingView.isHidden = !isShowing
-            })
-            .disposed(by: disposeBag)
         
-        // MARK: - TO DO -> Refactor fetch items method
         viewModel.fetchItems()
     }
     
@@ -289,8 +288,10 @@ extension SearchViewController {
         navigationView.searchView.textField.rx.text
             .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] str in
+                guard let self = self else { return }
+                
                 if let searchString = str, searchString.count > 0 {
-                    self?.viewModel?.isSearching.onNext(searchString)
+                    self.viewModel.isSearching.onNext(searchString)
                 }
             }
             .disposed(by: disposeBag)
@@ -299,14 +300,16 @@ extension SearchViewController {
     private func bindArticlesViewData() {
         viewModel.articles
             .observe(on: MainScheduler.instance)
-            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { row, model, cell in
                 cell.populateCell(data: model)
             }
             .disposed(by: disposeBag)
         
         articlesView.articlesCollectionView.rx.itemSelected
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { indexPath in
+            .subscribe(onNext: { [weak self] indexPath in
+                guard let self = self else { return }
+                
                 self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
             })
             .disposed(by: disposeBag)
@@ -349,9 +352,6 @@ extension SearchViewController {
                 }
             })
             .disposed(by: disposeBag)
-        
-        viewModel.isDateSelected
-            .onNext(true)
         
         viewModel.isRelevanceSelected
             .observe(on: MainScheduler.instance)

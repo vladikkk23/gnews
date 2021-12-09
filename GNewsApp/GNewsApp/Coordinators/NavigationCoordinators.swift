@@ -13,15 +13,13 @@ class NewsCoordinator: BaseCoordinator {
     private let rootVC = NewsViewController()
     
     // MARK: - Initializers
-    init(viewModel: NavigationViewModel) {
-        rootVC.navigationViewModel = viewModel
+    init(navigationViewModel: NavigationViewModel, viewModel: DataViewModel) {
+        rootVC.navigationViewModel = navigationViewModel
+        rootVC.viewModel = viewModel
     }
     
     // MARK: - Methods
     override func start() {
-        let dataViewModel = NewsViewModel()
-        rootVC.viewModel = dataViewModel
-        
         navigationController.isNavigationBarHidden = true
         navigationController.viewControllers = [rootVC]
     }
@@ -32,15 +30,13 @@ class SearchCoordinator: BaseCoordinator {
     private let rootVC = SearchViewController()
     
     // MARK: - Initializers
-    init(viewModel: NavigationViewModel) {
-        rootVC.navigationViewModel = viewModel
+    init(navigationViewModel: NavigationViewModel, viewModel: DataViewModel) {
+        rootVC.navigationViewModel = navigationViewModel
+        rootVC.viewModel = viewModel
     }
     
     // MARK: - Methods
     override func start() {
-        let dataViewModel = SearchViewModel()
-        rootVC.viewModel = dataViewModel
-        
         navigationController.isNavigationBarHidden = true
         navigationController.viewControllers = [rootVC]
     }
@@ -67,23 +63,13 @@ class FiltersCoordinator: BaseCoordinator {
     private let rootVC = FiltersViewController()
     
     // MARK: - Initializers
-    init(viewModel: NavigationViewModel) {
-        rootVC.navigationViewModel = viewModel
+    init(navigationViewModel: NavigationViewModel, viewModel: DataViewModel) {
+        rootVC.navigationViewModel = navigationViewModel
+        rootVC.viewModel = viewModel
     }
     
     // MARK: - Methods
     override func start() {
-        let dataViewModel = SearchViewModel()
-        rootVC.viewModel = dataViewModel
-        
-        navigationController.isNavigationBarHidden = true
-        navigationController.viewControllers = [rootVC]
-    }
-    
-    func navigateTo(viewController: UIViewController) {
-        let dataViewModel = SearchViewModel()
-        rootVC.viewModel = dataViewModel
-        
         navigationController.isNavigationBarHidden = true
         navigationController.viewControllers = [rootVC]
     }

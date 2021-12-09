@@ -7,6 +7,7 @@
 
 import UIKit
 import RxSwift
+import RxCocoa
 import SafariServices
 
 class NewsViewController: UIViewController {
@@ -17,7 +18,7 @@ class NewsViewController: UIViewController {
         }
     }
     
-    var viewModel: NewsViewModel! {
+    var viewModel: DataViewModel! {
         didSet {
             bindData()
         }
@@ -138,7 +139,9 @@ extension NewsViewController {
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
-                self?.present(safariViewController, animated: true)
+                guard let self = self else { return }
+                
+                self.present(safariViewController, animated: true)
             })
             .disposed(by: disposeBag)
     }
@@ -149,7 +152,9 @@ extension NewsViewController {
                 btn.button.rx.tap
                     .observe(on: MainScheduler.instance)
                     .bind { [weak self] in
-                        self?.navigationViewModel.isViewActive.onNext(viewType)
+                        guard let self = self else { return }
+                        
+                        self.navigationViewModel.isViewActive.onNext(viewType)
                     }
                     .disposed(by: disposeBag)
                 
@@ -172,29 +177,22 @@ extension NewsViewController {
     private func bindData() {
         bindArticlesViewData()
         
-        // MARK: - TO DO -> Check loading view method
-        viewModel.showLoading
-            .observe(on: MainScheduler.asyncInstance)
-            .subscribe(onNext: { [weak self] isShowing in
-                self?.articlesView.loadingView.isHidden = !isShowing
-            })
-            .disposed(by: disposeBag)
-        
-        // MARK: - TO DO -> Refactor fetch items method
         viewModel.fetchItems()
     }
     
     private func bindArticlesViewData() {
         viewModel.articles
             .observe(on: MainScheduler.instance)
-            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleTableViewCell.CELL_IDENTIFIER, cellType: ArticleTableViewCell.self)) { row, model, cell in
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { row, model, cell in
                 cell.populateCell(data: model)
             }
             .disposed(by: disposeBag)
         
         articlesView.articlesCollectionView.rx.itemSelected
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { indexPath in
+            .subscribe(onNext: { [weak self] indexPath in
+                guard let self = self else { return }
+                
                 self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
             })
             .disposed(by: disposeBag)

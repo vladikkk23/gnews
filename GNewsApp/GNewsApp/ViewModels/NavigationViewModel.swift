@@ -15,9 +15,10 @@ struct NavigationViewModel {
     
     let isSortViewActive = PublishSubject<Bool>()
     
-    let isFiltersViewActive = PublishSubject<Bool>()
-    let isContentFilterViewActive = PublishSubject<Bool>()
-
+    let isFiltersViewActive = PublishSubject<FilterViewTypeEnum>()
+    let primaryFilterSelected = PublishSubject<String>()
+    let secondaryFiltersSelected = PublishSubject<String>()
+    
     private let disposeBag = DisposeBag()
     
     // MARK: - Methods
@@ -31,6 +32,18 @@ struct NavigationViewModel {
         
         isViewActive
             .onNext(.news)
+        
+        primaryFilterSelected
+            .subscribe(onNext: { _ in
+                isFiltersViewActive.onNext(.none)
+            })
+            .disposed(by: disposeBag)
+        
+        secondaryFiltersSelected
+            .subscribe(onNext: { _ in
+                isFiltersViewActive.onNext(.primary)
+            })
+            .disposed(by: disposeBag)
     }
     
     func didCloseFiltersView() {
