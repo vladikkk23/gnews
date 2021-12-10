@@ -108,7 +108,8 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.contentFiltersSelectionView.shift(duration: 1, toogle: true, offset: CGPoint(x: self.view.frame.width, y: 0))
+                self.viewModel.fetchFilters.onNext(())
+                self.contentFiltersSelectionView.shift(duration: 0.5, toogle: true, offset: CGPoint(x: self.view.frame.width, y: 0))
             }
             .disposed(by: disposeBag)
         
@@ -117,7 +118,8 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.navigationViewModel.primaryFilterSelected.onNext("Primary Filters Selected")
+                self.viewModel.saveFilters.onNext(())
+                self.navigationViewModel.primaryFilterSelected.onNext(())
             }
             .disposed(by: disposeBag)
     }
@@ -137,7 +139,8 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.navigationViewModel.secondaryFiltersSelected.onNext("Secondary Filters Selected")
+                self.navigationViewModel.secondaryFiltersSelected.onNext(())
+                self.viewModel.saveFilters.onNext(())
             }
             .disposed(by: disposeBag)
     }
@@ -156,7 +159,7 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.viewModel.clearFilters.onNext(())
+                self.viewModel.clearMainFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
@@ -165,8 +168,10 @@ extension FiltersViewController {
             .subscribe(onNext: { [weak self] stringDate in
                 guard let self = self else { return }
                 
-                self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.text = stringDate
-                self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.textColor = .black
+                if stringDate.count > 0 {
+                    self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.text = stringDate
+                    self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.textColor = .black
+                }
             })
             .disposed(by: disposeBag)
         
@@ -175,8 +180,10 @@ extension FiltersViewController {
             .subscribe(onNext: { [weak self] stringDate in
                 guard let self = self else { return }
                 
-                self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.text = stringDate
-                self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.textColor = .black
+                if stringDate.count > 0 {
+                    self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.text = stringDate
+                    self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.textColor = .black
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -187,7 +194,7 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.viewModel.clearFilters.onNext(())
+                self.viewModel.clearSecodnaryFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
@@ -197,15 +204,7 @@ extension FiltersViewController {
                 guard let self = self else { return }
                 
                 self.contentFiltersSelectionView.contentSelectionView.titleSwitchView.valueSwitch.isOn.toggle()
-            }
-            .disposed(by: disposeBag)
-        
-        contentFiltersSelectionView.contentSelectionView.contentSwitchView.button.rx.tap
-            .observe(on: MainScheduler.instance)
-            .bind { [weak self] in
-                guard let self = self else { return }
-                
-                self.contentFiltersSelectionView.contentSelectionView.contentSwitchView.valueSwitch.isOn.toggle()
+                self.viewModel.inTitleSelected.onNext(self.contentFiltersSelectionView.contentSelectionView.titleSwitchView.valueSwitch.isOn)
             }
             .disposed(by: disposeBag)
         
@@ -215,7 +214,45 @@ extension FiltersViewController {
                 guard let self = self else { return }
                 
                 self.contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.valueSwitch.isOn.toggle()
+                self.viewModel.inDescriptionSelected.onNext(self.contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.valueSwitch.isOn)
             }
+            .disposed(by: disposeBag)
+        
+        contentFiltersSelectionView.contentSelectionView.contentSwitchView.button.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.contentSwitchView.valueSwitch.isOn.toggle()
+                self.viewModel.inContentSelected.onNext(self.contentFiltersSelectionView.contentSelectionView.contentSwitchView.valueSwitch.isOn)
+            }
+            .disposed(by: disposeBag)
+        
+        self.viewModel.inTitleSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.titleSwitchView.valueSwitch.isOn = $0
+            })
+            .disposed(by: disposeBag)
+        
+        self.viewModel.inDescriptionSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.valueSwitch.isOn = $0
+            })
+            .disposed(by: disposeBag)
+        
+        self.viewModel.inContentSelected
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                self.contentFiltersSelectionView.contentSelectionView.contentSwitchView.valueSwitch.isOn = $0
+            })
             .disposed(by: disposeBag)
     }
 }

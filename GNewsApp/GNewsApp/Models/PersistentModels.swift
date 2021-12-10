@@ -110,13 +110,29 @@ internal class PersistentSourceModel: Object {
     }
 }
 
-// MARK: - PersistenFiltersModel
-class PersistenFiltersModel: Object {
+// MARK: - PersistentFilterModel
+class PersistentFiltersModel: Object {
     // MARK: - Properties
     @objc dynamic var id = PersistentDataTypes.filters.rawValue
+    @objc dynamic var fromDate: String = ""
+    @objc dynamic var toDate: String = ""
+    var searchIn = List<String>()
     
     // MARK: - Methods
     override static func primaryKey() -> String? {
         return "id"
     }
 }
+
+// MARK: - PersistentSortModel
+class PersistentSortModel: Object {
+    // MARK: - Properties
+    @objc dynamic var id = "Sort"
+    @objc dynamic var filterType: String = ArticleSortEnum.newest.rawValue
+    
+    // MARK: - Methods
+    override static func primaryKey() -> String? {
+        return "id"
+    }
+}
+

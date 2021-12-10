@@ -58,7 +58,7 @@ enum ViewControllerUtils {
             window.rootViewController = viewController
             window.makeKeyAndVisible()
             
-            UIView.animate(withDuration: 0.75, animations: {
+            UIView.animate(withDuration: 0.25, animations: {
                 snapshot.layer.opacity = 0
             }, completion: { _ in
                 snapshot.removeFromSuperview()

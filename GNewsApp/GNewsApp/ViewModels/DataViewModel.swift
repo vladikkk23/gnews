@@ -13,7 +13,7 @@ class DataViewModel {
     // MARK: - Properties
     let storage = StorageService()
     var persistentNewsData = PersistentNewsModel()
-    var persistentFiltersData = PersistenFiltersModel()
+    var persistentFiltersData = PersistentFiltersModel()
     
     public let count = PublishSubject<Int>()
     public let articles = PublishSubject<[ArticleModel]>()
@@ -23,26 +23,26 @@ class DataViewModel {
     private let disposeBag = DisposeBag()
     
     let isSearching = PublishSubject<String>()
-    let clearFilters = PublishSubject<Void>()
     
-    let isDateSelected = PublishSubject<Bool>()
     let fromDateSelected = PublishSubject<String>()
     let toDateSelected = PublishSubject<String>()
+    let clearMainFilters = PublishSubject<Void>()
     
+    let inTitleSelected = PublishSubject<Bool>()
+    let inDescriptionSelected = PublishSubject<Bool>()
+    let inContentSelected = PublishSubject<Bool>()
+    let clearSecodnaryFilters = PublishSubject<Void>()
+    
+    let fetchFilters = PublishSubject<Void>()
+    let saveFilters = PublishSubject<Void>()
+    
+    let isDateSelected = PublishSubject<Bool>()
     let isRelevanceSelected = PublishSubject<Bool>()
     
     // MARK: - Initializers
     init() {
+        bindData()
         fetchItems()
-        
-        news
-            .observe(on: MainScheduler.asyncInstance)
-            .subscribe(onNext: { [weak self] news in
-                guard let self = self else { return }
-                
-                self.writeDataToPersistenceStorage(news: news)
-            })
-            .disposed(by: disposeBag)
     }
     
     // MARK: - Methods
@@ -109,13 +109,261 @@ class DataViewModel {
                 case 100...500:
                     self.fetchItems()
                 default:
-                    self.fetchItemsFromPersistenceStorage()
+                    self.fetchDataFromPersistenceStorage()
                 }
             }
             .disposed(by: disposeBag)
         
     }
+}
+
+// MARK: - Bind data
+extension DataViewModel {
+    private func bindData() {
+        bindDataToStorage()
+        bindFiltersToPersistenceStorage()
+        bindSearch()
+    }
     
+    // MARK: - Bind search
+    private func bindSearch() {
+        isSearching
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] title in
+                guard let self = self else { return }
+                
+                if title.count > 0 {
+                    self.search(title: title)
+                }
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    // MARK: Bind data to storage
+    private func bindDataToStorage() {
+        news
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] news in
+                guard let self = self else { return }
+                
+                self.writeDataToPersistenceStorage(news: news)
+            })
+            .disposed(by: disposeBag)
+        
+        fetchFilters
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    self.persistentFiltersData = filters
+                    
+                    if !filters.fromDate.isEmpty {
+                        self.fromDateSelected
+                            .onNext(filters.fromDate)
+                    }
+                    
+                    if !filters.toDate.isEmpty {
+                        self.fromDateSelected
+                            .onNext(filters.toDate)
+                    }
+                    
+                    if filters.searchIn.contains("title") {
+                        self.inTitleSelected
+                            .onNext(true)
+                    }
+                    
+                    if filters.searchIn.contains("description") {
+                        self.inDescriptionSelected
+                            .onNext(true)
+                    }
+                    
+                    if filters.searchIn.contains("content") {
+                        self.inContentSelected
+                            .onNext(true)
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        saveFilters
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                self.writeFiltersToPersistenceStorage(data: self.persistentFiltersData)
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    // MARK: - Bind filters to storage
+    private func bindFiltersToPersistenceStorage() {
+        fromDateSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] stringDate in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    _ = self.storage.update {
+                        filters.fromDate = stringDate
+                    }
+                } else {
+                    self.persistentFiltersData.fromDate = stringDate
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        toDateSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] stringDate in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    _ = self.storage.update {
+                        filters.toDate = stringDate
+                    }
+                } else {
+                    self.persistentFiltersData.toDate = stringDate
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        inTitleSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    if isActive {
+                        if !filters.searchIn.contains("title") {
+                            _ = self.storage.update {
+                                filters.searchIn.append("title")
+                            }
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "title" }) {
+                        _ = self.storage.update {
+                            filters.searchIn.remove(at: index)
+                        }
+                    }
+                } else {
+                    if isActive {
+                        if !self.persistentFiltersData.searchIn.contains("title") {
+                            self.persistentFiltersData.searchIn.append("title")
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "title" }) {
+                        self.persistentFiltersData.searchIn.remove(at: index)
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        inDescriptionSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    if isActive {
+                        if !filters.searchIn.contains("description") {
+                            _ = self.storage.update {
+                                filters.searchIn.append("description")
+                            }
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "description" }) {
+                        _ = self.storage.update {
+                            filters.searchIn.remove(at: index)
+                        }
+                    }
+                } else {
+                    if isActive {
+                        if !self.persistentFiltersData.searchIn.contains("description") {
+                            self.persistentFiltersData.searchIn.append("description")
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "description" }) {
+                        self.persistentFiltersData.searchIn.remove(at: index)
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        inContentSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if let filters = self.fetchFiltersFromPersistenceStorage() {
+                    if isActive {
+                        if !filters.searchIn.contains("content") {
+                            _ = self.storage.update {
+                                filters.searchIn.append("content")
+                            }
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "content" }) {
+                        _ = self.storage.update {
+                            filters.searchIn.remove(at: index)
+                        }
+                    }
+                } else {
+                    if isActive {
+                        if !self.persistentFiltersData.searchIn.contains("content") {
+                            self.persistentFiltersData.searchIn.append("content")
+                        }
+                    } else if let index = self.persistentFiltersData.searchIn.firstIndex(where: { $0 == "content" }) {
+                        self.persistentFiltersData.searchIn.remove(at: index)
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        clearSecodnaryFilters
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                if let filtersData = self.fetchFiltersFromPersistenceStorage() {
+                    let isSuccess = self.storage.update {
+                        filtersData.searchIn.removeAll()
+                    }
+                    
+                    if isSuccess {
+                        self.inTitleSelected.onNext(false)
+                        self.inContentSelected.onNext(false)
+                        self.inDescriptionSelected.onNext(false)
+                    }
+                } else {
+                    self.persistentFiltersData = PersistentFiltersModel()
+                    
+                    self.inTitleSelected.onNext(false)
+                    self.inContentSelected.onNext(false)
+                    self.inDescriptionSelected.onNext(false)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        clearMainFilters
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                let isSuccess = self.storage.flushAllFIlters()
+                
+                if isSuccess {
+                    self.persistentFiltersData = PersistentFiltersModel()
+                    
+                    self.fromDateSelected.onNext("")
+                    self.toDateSelected.onNext("")
+                    
+                    self.inTitleSelected.onNext(false)
+                    self.inContentSelected.onNext(false)
+                    self.inDescriptionSelected.onNext(false)
+                }
+            })
+            .disposed(by: disposeBag)
+    }
+}
+
+// MARK: - Storage operations
+extension DataViewModel {
     // MARK: - Write new data to storage
     private func writeDataToPersistenceStorage(news: NewsModel) {
         persistentNewsData = persistentNewsData.getData(fromCodable: news)
@@ -123,21 +371,44 @@ class DataViewModel {
         let isSuccess = storage.write(persistentNewsData)
         
         if isSuccess {
-            fetchItemsFromPersistenceStorage()
+            fetchDataFromPersistenceStorage()
         }
     }
     
     // MARK: - Read data from storage
-    private func fetchItemsFromPersistenceStorage() {
+    private func fetchDataFromPersistenceStorage() {
         if let objects: PersistentNewsModel = storage.object(.news), let news = objects.getDatafromPersistant() {
             articles.onNext(news.articles)
             count.onNext(news.totalArticles)
         }
     }
     
+    // MARK: - Write filters to storage
+    private func writeFiltersToPersistenceStorage(data: PersistentFiltersModel) {
+        _ = storage.write(data)
+        
+        print(fetchFiltersFromPersistenceStorage() ?? "nil")
+    }
+    
+    // MARK: - Read filters from storage
+    private func fetchFiltersFromPersistenceStorage() -> PersistentFiltersModel?{
+        if let filters: PersistentFiltersModel = storage.object(.filters) {
+            return filters
+        }
+        
+        return nil
+    }
+    
     // MARK: - Perform search and fetch result
     func search(title: String) {
-        let result: Observable<NewsModel> = WebService.shared.getSearchResult(title: title)
+        let filtersArray = self.persistentFiltersData.searchIn.joined(separator: ",")
+        
+        
+        let result: Observable<NewsModel> = WebService.shared.getSearchResult(title: title,
+                                                                              filters: [persistentFiltersData.fromDate,
+                                                                                        persistentFiltersData.toDate,
+                                                                                        filtersArray],
+                                                                              sort: .newest)
         
         result
             .subscribe(onNext: { [weak self] in

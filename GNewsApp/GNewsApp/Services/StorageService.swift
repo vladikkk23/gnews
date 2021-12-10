@@ -11,6 +11,7 @@ import RealmSwift
 // MARK: - StorageServiceProtocol
 protocol StorageServiceProtocol {
     // MARK: - Read one object
+    func object<T: Object>() -> T?
     func object<T: Object>(_ key: Any?) -> T?
     func object<T: Object>(_ predicate: (T) -> Bool) -> T?
     
@@ -149,12 +150,13 @@ class StorageService {
         return false
     }
     
-    func flush() -> Bool {
+    func flushAllFIlters() -> Bool {
         guard let realm: Realm = self.realm else { return false }
         
         do {
             try realm.write {
-                //                realm.delete(realm.objects(T.self))
+                // MARK: - Use only persistent types
+                realm.delete(realm.objects(PersistentFiltersModel.self))
             }
             
             return true

@@ -134,7 +134,9 @@ extension InDevelopmentViewController {
                 btn.button.rx.tap
                     .observe(on: MainScheduler.instance)
                     .bind { [weak self] in
-                        self?.navigationViewModel.isViewActive.onNext(viewType)
+                        guard let self = self else { return }
+                        
+                        self.navigationViewModel.isViewActive.onNext(viewType)
                     }
                     .disposed(by: disposeBag)
                 

@@ -16,39 +16,45 @@ struct NavigationViewModel {
     let isSortViewActive = PublishSubject<Bool>()
     
     let isFiltersViewActive = PublishSubject<FilterViewTypeEnum>()
-    let primaryFilterSelected = PublishSubject<String>()
-    let secondaryFiltersSelected = PublishSubject<String>()
+    let primaryFilterSelected = PublishSubject<Void>()
+    let secondaryFiltersSelected = PublishSubject<Void>()
     
     private let disposeBag = DisposeBag()
-    
     // MARK: - Methods
     func didStartNavigationTapped() {
         // MARK: - Only use this method to show main view controller.
-        isViewActive
-            .subscribe(onNext: {
-                buttonSelected.onNext($0)
-            })
-            .disposed(by: disposeBag)
+        bindData()
         
         isViewActive
             .onNext(.news)
-        
-        primaryFilterSelected
-            .subscribe(onNext: { _ in
-                isFiltersViewActive.onNext(.none)
-            })
-            .disposed(by: disposeBag)
-        
-        secondaryFiltersSelected
-            .subscribe(onNext: { _ in
-                isFiltersViewActive.onNext(.primary)
-            })
-            .disposed(by: disposeBag)
     }
     
     func didCloseFiltersView() {
         // MARK: - Only use this method to when filter view is closed
         isViewActive
             .onNext(.search)
+    }
+}
+
+// MARK: - Bind data
+extension NavigationViewModel {
+    private func bindData() {
+        isViewActive
+            .subscribe(onNext: {
+                buttonSelected.onNext($0)
+            })
+            .disposed(by: disposeBag)
+        
+        primaryFilterSelected
+            .subscribe(onNext: {
+                isFiltersViewActive.onNext(.none)
+            })
+            .disposed(by: disposeBag)
+        
+        secondaryFiltersSelected
+            .subscribe(onNext: {
+                isFiltersViewActive.onNext(.primary)
+            })
+            .disposed(by: disposeBag)
     }
 }

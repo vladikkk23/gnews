@@ -262,7 +262,7 @@ extension SearchViewController {
                 guard let self = self else { return }
                 
                 // Animate view transition
-                self.sortSelectionView.shift(duration: 1, toogle: toogle, offset: CGPoint(x: 0, y: self.sortSelectionView.frame.height))
+                self.sortSelectionView.shift(duration: 0.5, toogle: toogle, offset: CGPoint(x: 0, y: self.sortSelectionView.frame.height))
                 
                 if !toogle {
                     // Fetch data with new sort type
@@ -285,15 +285,13 @@ extension SearchViewController {
     }
     
     private func bindSearchViewData() {
-        navigationView.searchView.textField.rx.text
-            .observe(on: MainScheduler.asyncInstance)
-            .bind { [weak self] str in
+        navigationView.searchView.textField.rx.controlEvent(.editingDidEnd)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
                 
-                if let searchString = str, searchString.count > 0 {
-                    self.viewModel.isSearching.onNext(searchString)
-                }
-            }
+                self.viewModel.isSearching.onNext(self.navigationView.searchView.textField.text ?? "")
+            })
             .disposed(by: disposeBag)
     }
     

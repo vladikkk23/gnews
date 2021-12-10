@@ -15,7 +15,7 @@ class NewsCoordinator: BaseCoordinator {
     // MARK: - Initializers
     init(navigationViewModel: NavigationViewModel, viewModel: DataViewModel) {
         rootVC.navigationViewModel = navigationViewModel
-        rootVC.viewModel = viewModel
+        rootVC.viewModel = viewModel        
     }
     
     // MARK: - Methods
