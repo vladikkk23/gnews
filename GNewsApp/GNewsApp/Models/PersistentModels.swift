@@ -127,7 +127,7 @@ class PersistentFiltersModel: Object {
 // MARK: - PersistentSortModel
 class PersistentSortModel: Object {
     // MARK: - Properties
-    @objc dynamic var id = "Sort"
+    @objc dynamic var id = PersistentDataTypes.sort.rawValue
     @objc dynamic var filterType: String = ArticleSortEnum.newest.rawValue
     
     // MARK: - Methods

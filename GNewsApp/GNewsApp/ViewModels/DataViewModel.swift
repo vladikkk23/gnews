@@ -14,6 +14,7 @@ class DataViewModel {
     let storage = StorageService()
     var persistentNewsData = PersistentNewsModel()
     var persistentFiltersData = PersistentFiltersModel()
+    var persistentSortData = PersistentSortModel()
     
     public let count = PublishSubject<Int>()
     public let articles = PublishSubject<[ArticleModel]>()
@@ -26,6 +27,7 @@ class DataViewModel {
     
     let fromDateSelected = PublishSubject<String>()
     let toDateSelected = PublishSubject<String>()
+    let searchInSelected = PublishSubject<String>()
     let clearMainFilters = PublishSubject<Void>()
     
     let inTitleSelected = PublishSubject<Bool>()
@@ -36,63 +38,26 @@ class DataViewModel {
     let fetchFilters = PublishSubject<Void>()
     let saveFilters = PublishSubject<Void>()
     
+    var searchTitle = ""
     let isDateSelected = PublishSubject<Bool>()
     let isRelevanceSelected = PublishSubject<Bool>()
     
+    let fetchSort = PublishSubject<Void>()
+    let saveSort = PublishSubject<Void>()
+    
     // MARK: - Initializers
     init() {
+        // MARK: - Begin with default filter values
+        persistentFiltersData.searchIn.append(objectsIn: ["title", "description"])
+        persistentSortData.filterType = ArticleSortEnum.newest.rawValue
+        
         bindData()
         fetchItems()
     }
     
     // MARK: - Methods
     func fetchItems() {
-        //        let result: Observable<NewsModel> = WebService.shared.getTopHeadlines()
-        
-        let models: [ArticleModel] = [
-            ArticleModel(title: "Qualcomm prezintă procesorul flagship Snapdragon 8 Gen 1; Se va regăsi pe Galaxy S22, OnePlus 10 + alte telefoane din 2022",
-                         description: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de..",
-                         content: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de ... [3895 chars]",
-                         url: "https://www.mobilissimo.ro/stiri-diverse/qualcomm-prezinta-procesorul-flagship-snapdragon-8-gen-1-se-va-regasi-pe-galaxy-s22-oneplus-10-plus-alte-telefoane-din-2022",
-                         image: "https://images1.mobilissimo.ro/SHY/61a7299b1cf71.jpg",
-                         publishedAt: "2021-12-01T07:51:02Z",
-                         source: SourceModel(name: "Mobilissimo.ro",
-                                             url: "https://www.mobilissimo.ro")),
-            ArticleModel(title: "Qualcomm prezintă procesorul flagship Snapdragon 8 Gen 1; Se va regăsi pe Galaxy S22, OnePlus 10 + alte telefoane din 2022",
-                         description: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de..",
-                         content: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de ... [3895 chars]",
-                         url: "https://www.mobilissimo.ro/stiri-diverse/qualcomm-prezinta-procesorul-flagship-snapdragon-8-gen-1-se-va-regasi-pe-galaxy-s22-oneplus-10-plus-alte-telefoane-din-2022",
-                         image: "https://images1.mobilissimo.ro/SHY/61a7299b1cf71.jpg",
-                         publishedAt: "2021-12-01T07:51:02Z",
-                         source: SourceModel(name: "Mobilissimo.ro",
-                                             url: "https://www.mobilissimo.ro")),
-            ArticleModel(title: "Qualcomm prezintă procesorul flagship Snapdragon 8 Gen 1; Se va regăsi pe Galaxy S22, OnePlus 10 + alte telefoane din 2022",
-                         description: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de..",
-                         content: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de ... [3895 chars]",
-                         url: "https://www.mobilissimo.ro/stiri-diverse/qualcomm-prezinta-procesorul-flagship-snapdragon-8-gen-1-se-va-regasi-pe-galaxy-s22-oneplus-10-plus-alte-telefoane-din-2022",
-                         image: "https://images1.mobilissimo.ro/SHY/61a7299b1cf71.jpg",
-                         publishedAt: "2021-12-01T07:51:02Z",
-                         source: SourceModel(name: "Mobilissimo.ro",
-                                             url: "https://www.mobilissimo.ro")),
-            ArticleModel(title: "Qualcomm prezintă procesorul flagship Snapdragon 8 Gen 1; Se va regăsi pe Galaxy S22, OnePlus 10 + alte telefoane din 2022",
-                         description: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de..",
-                         content: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de ... [3895 chars]",
-                         url: "https://www.mobilissimo.ro/stiri-diverse/qualcomm-prezinta-procesorul-flagship-snapdragon-8-gen-1-se-va-regasi-pe-galaxy-s22-oneplus-10-plus-alte-telefoane-din-2022",
-                         image: "https://images1.mobilissimo.ro/SHY/61a7299b1cf71.jpg",
-                         publishedAt: "2021-12-01T07:51:02Z",
-                         source: SourceModel(name: "Mobilissimo.ro",
-                                             url: "https://www.mobilissimo.ro")),
-            ArticleModel(title: "Qualcomm prezintă procesorul flagship Snapdragon 8 Gen 1; Se va regăsi pe Galaxy S22, OnePlus 10 + alte telefoane din 2022",
-                         description: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de..",
-                         content: "Aşa cum ne aşteptam Qualcomm a ţinut un eveniment pe 30 noiembrie 2021, în cadrul căruia a prezentat în sfârşit noul său procesor flagship, Qualcomm Snapdragon 8 Gen 1. A fost cunoscut o perioadă şi drept Snapdragon 898, dar pentru a marca saltul de ... [3895 chars]",
-                         url: "https://www.mobilissimo.ro/stiri-diverse/qualcomm-prezinta-procesorul-flagship-snapdragon-8-gen-1-se-va-regasi-pe-galaxy-s22-oneplus-10-plus-alte-telefoane-din-2022",
-                         image: "https://images1.mobilissimo.ro/SHY/61a7299b1cf71.jpg",
-                         publishedAt: "2021-12-01T07:51:02Z",
-                         source: SourceModel(name: "Mobilissimo.ro",
-                                             url: "https://www.mobilissimo.ro"))
-        ]
-        
-        let result: Observable<NewsModel> = Observable.just(NewsModel(totalArticles: 5, articles: models))
+        let result: Observable<NewsModel> = WebService.shared.getTopHeadlines()
         
         result
             .observe(on: MainScheduler.asyncInstance)
@@ -123,6 +88,7 @@ extension DataViewModel {
         bindDataToStorage()
         bindFiltersToPersistenceStorage()
         bindSearch()
+        bindSort()
     }
     
     // MARK: - Bind search
@@ -133,7 +99,7 @@ extension DataViewModel {
                 guard let self = self else { return }
                 
                 if title.count > 0 {
-                    self.search(title: title)
+                    self.search(title: title, sortBy: ArticleSortEnum(rawValue: self.persistentSortData.filterType) ?? .newest)
                 }
             })
             .disposed(by: disposeBag)
@@ -164,7 +130,7 @@ extension DataViewModel {
                     }
                     
                     if !filters.toDate.isEmpty {
-                        self.fromDateSelected
+                        self.toDateSelected
                             .onNext(filters.toDate)
                     }
                     
@@ -182,6 +148,15 @@ extension DataViewModel {
                         self.inContentSelected
                             .onNext(true)
                     }
+                } else {
+                    self.inTitleSelected
+                        .onNext(true)
+                    
+                    self.inDescriptionSelected
+                        .onNext(true)
+                    
+                    self.inContentSelected
+                        .onNext(true)
                 }
             })
             .disposed(by: disposeBag)
@@ -192,6 +167,40 @@ extension DataViewModel {
                 guard let self = self else { return }
                 
                 self.writeFiltersToPersistenceStorage(data: self.persistentFiltersData)
+                self.fetchFilters.onNext(())
+                self.searchInSelected.onNext(Array(self.persistentFiltersData.searchIn).joined(separator: ", "))
+            })
+            .disposed(by: disposeBag)
+        
+        fetchSort
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                if let sortData = self.fetchSortFromPersistenceStorage() {
+                    self.persistentSortData = sortData
+                    
+                    if sortData.filterType == ArticleSortEnum.newest.rawValue {
+                        self.isDateSelected
+                            .onNext(true)
+                    } else if sortData.filterType == ArticleSortEnum.relevance.rawValue {
+                        self.isRelevanceSelected
+                            .onNext(true)
+                    }
+                } else {
+                    self.isDateSelected
+                        .onNext(true)
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        saveSort
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] in
+                guard let self = self else { return }
+                
+                self.writeSortToPersistenceStorage(data: self.persistentSortData)
+                self.fetchSort.onNext(())
             })
             .disposed(by: disposeBag)
     }
@@ -360,6 +369,49 @@ extension DataViewModel {
             })
             .disposed(by: disposeBag)
     }
+    
+    // MARK: - Bind sort
+    private func bindSort() {
+        isDateSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if isActive {
+                    if let sort = self.fetchSortFromPersistenceStorage() {
+                        if !(sort.filterType == ArticleSortEnum.newest.rawValue) {
+                            _ = self.storage.update {
+                                sort.filterType = ArticleSortEnum.newest.rawValue
+                            }
+                        }
+                    } else {
+                        self.persistentSortData.filterType = ArticleSortEnum.newest.rawValue
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        isRelevanceSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] isActive in
+                guard let self = self else { return }
+                
+                if isActive {
+                    if let sort = self.fetchSortFromPersistenceStorage() {
+                        if !(sort.filterType == ArticleSortEnum.relevance.rawValue) {
+                            _ = self.storage.update {
+                                sort.filterType = ArticleSortEnum.relevance.rawValue
+                            }
+                        }
+                    } else {
+                        _ = self.storage.update {
+                            self.persistentSortData.filterType = ArticleSortEnum.relevance.rawValue
+                        }
+                    }
+                }
+            })
+            .disposed(by: disposeBag)
+    }
 }
 
 // MARK: - Storage operations
@@ -386,8 +438,6 @@ extension DataViewModel {
     // MARK: - Write filters to storage
     private func writeFiltersToPersistenceStorage(data: PersistentFiltersModel) {
         _ = storage.write(data)
-        
-        print(fetchFiltersFromPersistenceStorage() ?? "nil")
     }
     
     // MARK: - Read filters from storage
@@ -399,16 +449,33 @@ extension DataViewModel {
         return nil
     }
     
-    // MARK: - Perform search and fetch result
-    func search(title: String) {
-        let filtersArray = self.persistentFiltersData.searchIn.joined(separator: ",")
+    // MARK: - Write sort to storage
+    private func writeSortToPersistenceStorage(data: PersistentSortModel) {
+        _ = storage.write(data)
+    }
+    
+    // MARK: - Read sort from storage
+    private func fetchSortFromPersistenceStorage() -> PersistentSortModel? {
+        if let sort: PersistentSortModel = storage.object(.sort) {
+            return sort
+        }
         
+        return nil
+    }
+    
+    // MARK: - Perform search and fetch result
+    func search(title: String, sortBy: ArticleSortEnum) {
+        if let filters = fetchFiltersFromPersistenceStorage() {
+            persistentFiltersData = filters
+        }
+        
+        let searchInFilters = Array(persistentFiltersData.searchIn).joined(separator: ",")
         
         let result: Observable<NewsModel> = WebService.shared.getSearchResult(title: title,
                                                                               filters: [persistentFiltersData.fromDate,
                                                                                         persistentFiltersData.toDate,
-                                                                                        filtersArray],
-                                                                              sort: .newest)
+                                                                                        searchInFilters],
+                                                                              sort: sortBy)
         
         result
             .subscribe(onNext: { [weak self] in
@@ -416,6 +483,8 @@ extension DataViewModel {
                 
                 self.articles.onNext($0.articles)
                 self.count.onNext($0.totalArticles)
+                
+                self.searchTitle = title
             })
             .disposed(by: disposeBag)
     }

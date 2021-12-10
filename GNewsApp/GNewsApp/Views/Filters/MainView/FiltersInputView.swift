@@ -354,7 +354,7 @@ class SearchInView: UIView {
             valueLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             valueLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             valueLabel.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.9),
-            valueLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.5)
+            valueLabel.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.65)
         ])
     }
     

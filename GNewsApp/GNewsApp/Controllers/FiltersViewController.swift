@@ -108,8 +108,8 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.viewModel.fetchFilters.onNext(())
                 self.contentFiltersSelectionView.shift(duration: 0.5, toogle: true, offset: CGPoint(x: self.view.frame.width, y: 0))
+                self.viewModel.fetchFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
@@ -139,8 +139,8 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.navigationViewModel.secondaryFiltersSelected.onNext(())
                 self.viewModel.saveFilters.onNext(())
+                self.navigationViewModel.secondaryFiltersSelected.onNext(())
             }
             .disposed(by: disposeBag)
     }
@@ -171,6 +171,9 @@ extension FiltersViewController {
                 if stringDate.count > 0 {
                     self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.text = stringDate
                     self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.textColor = .black
+                } else {
+                    self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.text = "yyyy/mm/dd"
+                    self.filtersInputView.filtersView.fromDateInputView.inputDateView.textField.textColor = .lightGray
                 }
             })
             .disposed(by: disposeBag)
@@ -183,6 +186,25 @@ extension FiltersViewController {
                 if stringDate.count > 0 {
                     self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.text = stringDate
                     self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.textColor = .black
+                } else {
+                    self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.text = "yyyy/mm/dd"
+                    self.filtersInputView.filtersView.toDateInputView.inputDateView.textField.textColor = .lightGray
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        viewModel.searchInSelected
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] title in
+                guard let self = self else { return }
+                
+                switch title.count {
+                case 0...3:
+                    self.filtersInputView.filtersView.searchInButton.valueLabel.text = "None"
+                case 4...20:
+                    self.filtersInputView.filtersView.searchInButton.valueLabel.text = title
+                default:
+                    self.filtersInputView.filtersView.searchInButton.valueLabel.text = "All"
                 }
             })
             .disposed(by: disposeBag)
@@ -228,7 +250,7 @@ extension FiltersViewController {
             }
             .disposed(by: disposeBag)
         
-        self.viewModel.inTitleSelected
+        viewModel.inTitleSelected
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
@@ -237,7 +259,7 @@ extension FiltersViewController {
             })
             .disposed(by: disposeBag)
         
-        self.viewModel.inDescriptionSelected
+        viewModel.inDescriptionSelected
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
@@ -246,7 +268,7 @@ extension FiltersViewController {
             })
             .disposed(by: disposeBag)
         
-        self.viewModel.inContentSelected
+        viewModel.inContentSelected
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }

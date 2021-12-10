@@ -15,12 +15,14 @@ public enum RequestType: String {
 
 // MARK: - API Request
 protocol APIRequest {
+    // MARK: - Properties
     var method: RequestType { get }
     var endpoint: String { get }
     var parameters: [String: String] { get }
 }
 
 extension APIRequest {
+    // MARK: - Methods
     func request(with baseURL: URL) -> URLRequest {
         guard var components = URLComponents(url: baseURL.appendingPathComponent(endpoint), resolvingAgainstBaseURL: false) else {
             fatalError("Unable to create URL components")
@@ -44,10 +46,12 @@ extension APIRequest {
 
 // MARK: - TopHeadlines Request
 class TopHeadlinesRequest: APIRequest {
+    // MARK: - Properties
     var method: RequestType = .GET
     var endpoint: String = "top-headlines"
     var parameters: [String : String] = [String : String]()
     
+    // MARK: - Initializers
     init(token: String) {
         parameters["token"] = token
         parameters["lang"] = "en"
@@ -60,8 +64,12 @@ class SearchRequest: APIRequest {
     var endpoint: String = "search"
     var parameters: [String : String] = [String : String]()
     
+    // MARK: - Initializers
     init(token: String, title: String, filters: [String], sort: ArticleSortEnum) {
         parameters["q"] = title
+        parameters["from"] = filters[0]
+        parameters["to"] = filters[1]
+        parameters["in"] = filters[2]
         parameters["sortby"] = sort.rawValue
         parameters["token"] = token
         parameters["lang"] = "en"

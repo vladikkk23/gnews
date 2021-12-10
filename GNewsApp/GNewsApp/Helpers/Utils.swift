@@ -102,4 +102,5 @@ enum PersistentDataTypes: String {
     case articles
     case sources
     case filters
+    case sort
 }

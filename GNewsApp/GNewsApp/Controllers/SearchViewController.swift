@@ -177,7 +177,6 @@ extension SearchViewController {
                 guard let self = self else { return }
                 
                 self.navigationView.filtersButton.isSelected.toggle()
-                
                 self.navigationViewModel.isFiltersViewActive.onNext(.primary)
             }
             .disposed(by: disposeBag)
@@ -206,11 +205,17 @@ extension SearchViewController {
         
         navigationViewModel.isSortViewActive
             .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { [weak self] in
+            .subscribe(onNext: { [weak self] isActive in
                 guard let self = self else { return }
                 
-                self.navigationView.sortButton.tintColor = $0 ? .white : .black
-                self.navigationView.sortButton.backgroundColor = $0 ? .orange : UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
+                self.navigationView.sortButton.tintColor = isActive ? .white : .black
+                self.navigationView.sortButton.backgroundColor = isActive ? .orange : UIColor(red: 247/255, green: 247/255, blue: 247/255, alpha: 1)
+                
+                if !isActive {
+                    self.viewModel.saveSort.onNext(())
+                } else {
+                    self.viewModel.fetchSort.onNext(())
+                }
             })
             .disposed(by: disposeBag)
     }
@@ -244,11 +249,15 @@ extension SearchViewController {
                 
                 navigationViewModel.buttonSelected
                     .observe(on: MainScheduler.instance)
-                    .subscribe(onNext: {
+                    .subscribe(onNext: { [weak self] in
+                        guard let self = self else { return }
+                        
                         if $0 == viewType {
                             btn.image.tintColor = .orange
                             btn.titleLabel.textColor = .orange
                         }
+                        
+                        self.viewModel.isDateSelected.onNext(true)
                     })
                     .disposed(by: disposeBag)
             }
@@ -263,11 +272,6 @@ extension SearchViewController {
                 
                 // Animate view transition
                 self.sortSelectionView.shift(duration: 0.5, toogle: toogle, offset: CGPoint(x: 0, y: self.sortSelectionView.frame.height))
-                
-                if !toogle {
-                    // Fetch data with new sort type
-                    self.viewModel.fetchItems()
-                }
             })
             .disposed(by: disposeBag)
     }
@@ -292,6 +296,15 @@ extension SearchViewController {
                 
                 self.viewModel.isSearching.onNext(self.navigationView.searchView.textField.text ?? "")
             })
+            .disposed(by: disposeBag)
+        
+        navigationView.filtersButton.rx.tap
+            .observe(on: MainScheduler.instance)
+            .bind { [weak self] in
+                guard let self = self else { return }
+                
+                self.viewModel.fetchFilters.onNext(())
+            }
             .disposed(by: disposeBag)
     }
     
