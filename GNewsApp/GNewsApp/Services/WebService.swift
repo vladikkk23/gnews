@@ -75,6 +75,7 @@ class SearchRequest: APIRequest {
         parameters["lang"] = "en"
     }
 }
+
 // MARK: - Web Service
 class WebService {
     // MARK: - Shared instance
@@ -90,7 +91,7 @@ class WebService {
     // MARK: - Methods
     
     // MARK: - Genereic request handler
-    private func handleRequest<T: Codable>(request: URLRequest) -> Observable<T> {
+    internal func handleRequest<T: Codable>(request: URLRequest) -> Observable<T> {
         return URLSession.shared.rx.data(request: request)
             .map { data in
                 try JSONDecoder().decode(T.self, from: data)
@@ -109,5 +110,50 @@ class WebService {
         let request = SearchRequest(token: APIToken, title: title, filters: filters, sort: sort).request(with: baseURL)
         
         return handleRequest(request: request)
+    }
+}
+
+// MARK: - ImageService
+class ImageService {
+    // MARK: - Properties
+    let image = PublishSubject<UIImage>()
+    
+    // MARK: - Image cache. Store images for one day.
+    private let imageCache = ImageCache<String, UIImage>(cacheTTL: TimeInterval(86400))
+    
+    // MARK: - Shared instance
+    static let shared = ImageService()
+    
+    // MARK: - WebService instance
+    private let webService = WebService.shared
+    
+    // MARK: - Initializers
+    private init () {}
+    
+    // MARK: - Methods
+    private func downloadImage(withStringUrl stringUrl: String) -> Observable<UIImage?> {
+        if let validUrl = URL(string: stringUrl) {
+            let request = URLRequest(url: validUrl)
+            
+            return URLSession.shared.rx.data(request: request)
+                .map { data in
+                    if let image = UIImage(data: data) {
+                        self.imageCache.save(key: stringUrl, item: image)
+                        
+                        return image
+                    }
+                    return nil
+                }
+        }
+        
+        return .never()
+    }
+    
+    func loadImage(usingStringUrl stringUrl: String) -> Observable<UIImage?> {
+        if let cachedImage = imageCache.load(key: stringUrl) {
+            return .just(cachedImage)
+        }
+        
+        return downloadImage(withStringUrl: stringUrl)
     }
 }

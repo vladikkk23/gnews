@@ -67,7 +67,6 @@ class DataViewModel {
         let result: Observable<NewsModel> = WebService.shared.getTopHeadlines()
         
         result
-            .observe(on: MainScheduler.asyncInstance)
             .subscribe { [weak self] news in
                 guard let self = self else { return }
                 

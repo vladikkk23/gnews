@@ -12,7 +12,10 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     // MARK: - Properties
     static let CELL_IDENTIFIER = "ArticleTableViewCell"
     
-    private let disposeBag = DisposeBag()
+    let imageViewModel: ImageDataViewModel = {
+        let service = ImageDataViewModel()
+        return service
+    }()
     
     // MARK: - UI
     lazy var titleLabel: UILabel = {
@@ -58,12 +61,9 @@ class ArticleCollectionViewCell: UICollectionViewCell {
     
     // MARK: - Methods
     func populateCell(data: ArticleModel) {
-        self.titleLabel.text = data.title
-        self.descriptionLabel.text = data.description
-        
-        if let url = URL(string: data.image) {
-            image.loadImage(withUrl: url)
-        }
+        titleLabel.text = data.title
+        descriptionLabel.text = data.description
+        imageViewModel.fetchImage(usingStringUrl: data.image)
     }
     
     private func setupCell() {

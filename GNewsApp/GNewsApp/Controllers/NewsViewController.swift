@@ -153,7 +153,7 @@ extension NewsViewController {
     private func bindArticlesViewNavigationData() {
         // Open web view
         articlesView.articlesCollectionView.rx.modelSelected(ArticleModel.self)
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .compactMap { URL(string: $0.url) }
             .map { SFSafariViewController(url: $0) }
             .subscribe(onNext: { [weak self] safariViewController in
@@ -177,7 +177,7 @@ extension NewsViewController {
                     .disposed(by: disposeBag)
                 
                 navigationViewModel.buttonSelected
-                    .observe(on: MainScheduler.instance)
+                    .observe(on: MainScheduler.asyncInstance)
                     .subscribe(onNext: {
                         if $0 == viewType {
                             btn.image.tintColor = .orange
@@ -201,14 +201,20 @@ extension NewsViewController {
     
     private func bindArticlesViewData() {
         viewModel.articles
-            .observe(on: MainScheduler.instance)
-            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { row, model, cell in
+            .observe(on: MainScheduler.asyncInstance)
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { [weak self] row, model, cell in
+                guard let self = self else { return }
+                
+                cell.imageViewModel.image
+                    .bind(to: cell.image.rx.image)
+                    .disposed(by: self.disposeBag)
+                
                 cell.populateCell(data: model)
             }
             .disposed(by: disposeBag)
         
         articlesView.articlesCollectionView.rx.itemSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] indexPath in
                 guard let self = self else { return }
                 
@@ -219,7 +225,7 @@ extension NewsViewController {
     
     private func bindLoadingViewData() {
         viewModel.isLoading
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] isLoading in
                 guard let self = self else { return }
                 

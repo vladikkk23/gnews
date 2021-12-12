@@ -6,32 +6,6 @@
 //
 
 import UIKit
-import RxSwift
-
-// MARK: - Cache images
-let imageCache = NSCache<NSString, UIImage>()
-
-// MARK: - Extension to download image view url, asynchronous
-extension UIImageView {
-    func loadImage(withUrl url: URL) {
-        if let cachedImage = imageCache.object(forKey: NSString(string: url.absoluteString)) {
-            self.image = cachedImage
-            return
-        }
-        
-        DispatchQueue.global().async { [weak self] in
-            if let imageData = try? Data(contentsOf: url) {
-                if let image = UIImage(data: imageData) {
-                    DispatchQueue.main.async {
-                        imageCache.setObject(image, forKey: NSString(string: url.absoluteString))
-                        
-                        self?.image = image
-                    }
-                }
-            }
-        }
-    }
-}
 
 // MARK: - Extension to present view controller
 extension UIViewController {    

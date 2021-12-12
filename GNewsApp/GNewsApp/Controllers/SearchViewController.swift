@@ -308,7 +308,7 @@ extension SearchViewController {
     
     private func bindSearchViewData() {
         navigationView.searchView.textField.rx.controlEvent(.editingDidEnd)
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
                 
@@ -317,7 +317,7 @@ extension SearchViewController {
             .disposed(by: disposeBag)
         
         navigationView.filtersButton.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -328,14 +328,20 @@ extension SearchViewController {
     
     private func bindArticlesViewData() {
         viewModel.articles
-            .observe(on: MainScheduler.instance)
-            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { row, model, cell in
+            .observe(on: MainScheduler.asyncInstance)
+            .bind(to: articlesView.articlesCollectionView.rx.items(cellIdentifier: ArticleCollectionViewCell.CELL_IDENTIFIER, cellType: ArticleCollectionViewCell.self)) { [weak self] row, model, cell in
+                guard let self = self else { return }
+                
+                cell.imageViewModel.image
+                    .bind(to: cell.image.rx.image)
+                    .disposed(by: self.disposeBag)
+                
                 cell.populateCell(data: model)
             }
             .disposed(by: disposeBag)
         
         articlesView.articlesCollectionView.rx.itemSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] indexPath in
                 guard let self = self else { return }
                 
@@ -346,7 +352,7 @@ extension SearchViewController {
     
     private func bindSortViewData() {
         sortSelectionView.dateCell.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -355,7 +361,7 @@ extension SearchViewController {
             .disposed(by: disposeBag)
         
         sortSelectionView.relevanceCell.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -364,7 +370,7 @@ extension SearchViewController {
             .disposed(by: disposeBag)
         
         viewModel.isDateSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] toogle in
                 guard let self = self else { return }
                 
@@ -383,7 +389,7 @@ extension SearchViewController {
             .disposed(by: disposeBag)
         
         viewModel.isRelevanceSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] toogle in
                 guard let self = self else { return }
                 
@@ -404,7 +410,7 @@ extension SearchViewController {
     
     private func bindControllerViewData() {
         viewModel.count
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .map { "\($0) news" }
             .bind(to: titleLabel.rx.text)
             .disposed(by: disposeBag)
@@ -412,7 +418,7 @@ extension SearchViewController {
     
     private func bindLoadingViewData() {
         viewModel.isLoading
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] isLoading in
                 guard let self = self else { return }
                 
