@@ -66,6 +66,12 @@ class NewsViewController: UIViewController {
         return view
     }()
     
+    lazy var loadingView: LoadingView = {
+        let view = LoadingView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,48 +85,60 @@ class NewsViewController: UIViewController {
         setupTableViewLayout()
         setupTitleLabelLayout()
         setupMenuViewLayout()
+        setupLoadingViewLayout()
     }
     
     private func setupNavigationViewLayout() {
-        self.view.addSubview(navigationView)
+        view.addSubview(navigationView)
         
         NSLayoutConstraint.activate([
-            navigationView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            navigationView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            navigationView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
-            navigationView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
+            navigationView.topAnchor.constraint(equalTo: view.topAnchor),
+            navigationView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            navigationView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.1),
+            navigationView.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
     }
     
     private func setupTitleLabelLayout() {
-        self.view.addSubview(titleLabel)
+        view.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: self.articlesView.leadingAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: self.articlesView.topAnchor, constant: -5),
+            titleLabel.leadingAnchor.constraint(equalTo: articlesView.leadingAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: articlesView.topAnchor, constant: -5),
             titleLabel.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.05)
         ])
     }
     
     private func setupTableViewLayout() {
-        self.view.addSubview(articlesView)
+        view.addSubview(articlesView)
         
         NSLayoutConstraint.activate([
-            articlesView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            articlesView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.7),
-            articlesView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9)
+            articlesView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            articlesView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.7),
+            articlesView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.9)
         ])
     }
     
     private func setupMenuViewLayout() {
-        self.view.addSubview(menuView)
+        view.addSubview(menuView)
         
         NSLayoutConstraint.activate([
-            menuView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            menuView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            menuView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.1),
-            menuView.widthAnchor.constraint(equalTo: self.view.widthAnchor),
-            articlesView.bottomAnchor.constraint(equalTo: self.menuView.topAnchor)
+            menuView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            menuView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            menuView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.1),
+            menuView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            articlesView.bottomAnchor.constraint(equalTo: menuView.topAnchor)
+        ])
+    }
+    
+    private func setupLoadingViewLayout() {
+        view.addSubview(loadingView)
+        
+        NSLayoutConstraint.activate([
+            loadingView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            loadingView.heightAnchor.constraint(equalTo: view.heightAnchor),
+            loadingView.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
     }
 }
@@ -176,6 +194,7 @@ extension NewsViewController {
 extension NewsViewController {
     private func bindData() {
         bindArticlesViewData()
+        bindLoadingViewData()
         
         viewModel.fetchItems()
     }
@@ -194,6 +213,23 @@ extension NewsViewController {
                 guard let self = self else { return }
                 
                 self.articlesView.articlesCollectionView.deselectItem(at: indexPath, animated: true)
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindLoadingViewData() {
+        viewModel.isLoading
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                self.loadingView.isHidden = !isLoading
+                
+                if isLoading {
+                    self.loadingView.loadingIndicator.startLoad()
+                } else {
+                    self.loadingView.loadingIndicator.stopLoad()
+                }
             })
             .disposed(by: disposeBag)
     }

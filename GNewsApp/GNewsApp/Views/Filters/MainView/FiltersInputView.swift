@@ -289,7 +289,6 @@ class SearchInView: UIView {
     lazy var valueLabel: UILabel = {
         let lbl = UILabel()
         lbl.translatesAutoresizingMaskIntoConstraints = false
-        lbl.text = "All"
         lbl.font = UIFont(name: "Avenir-Heavy", size: 15)
         lbl.textAlignment = .right
         lbl.textColor = .lightGray
