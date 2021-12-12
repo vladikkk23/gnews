@@ -80,6 +80,12 @@ class SearchViewController: UIViewController {
         return view
     }()
     
+    lazy var loadingView: LoadingView = {
+        let view = LoadingView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Methods
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,6 +101,7 @@ class SearchViewController: UIViewController {
         setupTitleLabelLayout()
         setupMenuViewLayout()
         setupSortSelectionViewLayout()
+        setupLoadingViewLayout()
     }
     
     private func setupNavigationViewLayout() {
@@ -150,6 +157,17 @@ class SearchViewController: UIViewController {
             sortSelectionView.widthAnchor.constraint(equalTo: self.view.widthAnchor)
         ])
     }
+    
+    private func setupLoadingViewLayout() {
+        view.addSubview(loadingView)
+        
+        NSLayoutConstraint.activate([
+            loadingView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            loadingView.heightAnchor.constraint(equalTo: view.heightAnchor),
+            loadingView.widthAnchor.constraint(equalTo: view.widthAnchor)
+        ])
+    }
 }
 
 // MARK: - Extension to hide sortSelectionView before view did load
@@ -199,7 +217,6 @@ extension SearchViewController {
                 self.navigationView.sortButton.isSelected.toggle()
                 
                 self.navigationViewModel.isSortViewActive.onNext(self.navigationView.sortButton.isSelected)
-                
             }
             .disposed(by: disposeBag)
         
@@ -284,6 +301,7 @@ extension SearchViewController {
         bindArticlesViewData()
         bindSortViewData()
         bindControllerViewData()
+        bindLoadingViewData()
         
         viewModel.fetchItems()
     }
@@ -389,6 +407,23 @@ extension SearchViewController {
             .observe(on: MainScheduler.instance)
             .map { "\($0) news" }
             .bind(to: titleLabel.rx.text)
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindLoadingViewData() {
+        viewModel.isLoading
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] isLoading in
+                guard let self = self else { return }
+                
+                self.loadingView.isHidden = !isLoading
+                
+                if isLoading {
+                    self.loadingView.loadingIndicator.startLoad()
+                } else {
+                    self.loadingView.loadingIndicator.stopLoad()
+                }
+            })
             .disposed(by: disposeBag)
     }
 }

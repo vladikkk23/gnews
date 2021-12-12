@@ -28,15 +28,14 @@ class DataViewModel {
     let fromDateSelected = PublishSubject<String>()
     let toDateSelected = PublishSubject<String>()
     let searchInSelected = PublishSubject<String>()
-    let clearMainFilters = PublishSubject<Void>()
     
     let inTitleSelected = PublishSubject<Bool>()
     let inDescriptionSelected = PublishSubject<Bool>()
     let inContentSelected = PublishSubject<Bool>()
-    let clearSecodnaryFilters = PublishSubject<Void>()
+    let clearFilters = PublishSubject<Void>()
     
-    let fetchFilters = PublishSubject<Void>()
     let saveFilters = PublishSubject<Void>()
+    let fetchFilters = PublishSubject<Void>()
     
     var searchTitle = ""
     let isDateSelected = PublishSubject<Bool>()
@@ -45,14 +44,22 @@ class DataViewModel {
     let fetchSort = PublishSubject<Void>()
     let saveSort = PublishSubject<Void>()
     
+    let isLoading = PublishSubject<Bool>()
+    
     // MARK: - Initializers
     init() {
         // MARK: - Begin with default filter values
-        persistentFiltersData.searchIn.append(objectsIn: ["title", "description"])
+        persistentFiltersData.searchIn.append(objectsIn: ["title", "description", "content"])
         persistentSortData.filterType = ArticleSortEnum.newest.rawValue
         
         bindData()
         fetchItems()
+        
+        saveFilters
+            .onNext(())
+        
+        saveSort
+            .onNext(())
     }
     
     // MARK: - Methods
@@ -78,7 +85,6 @@ class DataViewModel {
                 }
             }
             .disposed(by: disposeBag)
-        
     }
 }
 
@@ -89,6 +95,7 @@ extension DataViewModel {
         bindFiltersToPersistenceStorage()
         bindSearch()
         bindSort()
+        bindLoadingData()
     }
     
     // MARK: - Bind search
@@ -158,6 +165,7 @@ extension DataViewModel {
                     self.inContentSelected
                         .onNext(true)
                 }
+                self.searchInSelected.onNext(Array(self.persistentFiltersData.searchIn).joined(separator: ", "))
             })
             .disposed(by: disposeBag)
         
@@ -324,32 +332,7 @@ extension DataViewModel {
             })
             .disposed(by: disposeBag)
         
-        clearSecodnaryFilters
-            .observe(on: MainScheduler.asyncInstance)
-            .subscribe(onNext: { [weak self] in
-                guard let self = self else { return }
-                
-                if let filtersData = self.fetchFiltersFromPersistenceStorage() {
-                    let isSuccess = self.storage.update {
-                        filtersData.searchIn.removeAll()
-                    }
-                    
-                    if isSuccess {
-                        self.inTitleSelected.onNext(false)
-                        self.inContentSelected.onNext(false)
-                        self.inDescriptionSelected.onNext(false)
-                    }
-                } else {
-                    self.persistentFiltersData = PersistentFiltersModel()
-                    
-                    self.inTitleSelected.onNext(false)
-                    self.inContentSelected.onNext(false)
-                    self.inDescriptionSelected.onNext(false)
-                }
-            })
-            .disposed(by: disposeBag)
-        
-        clearMainFilters
+        clearFilters
             .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
@@ -365,6 +348,8 @@ extension DataViewModel {
                     self.inTitleSelected.onNext(false)
                     self.inContentSelected.onNext(false)
                     self.inDescriptionSelected.onNext(false)
+                    
+                    self.searchInSelected.onNext(Array(self.persistentFiltersData.searchIn).joined(separator: ", "))
                 }
             })
             .disposed(by: disposeBag)
@@ -409,6 +394,18 @@ extension DataViewModel {
                         }
                     }
                 }
+            })
+            .disposed(by: disposeBag)
+    }
+    
+    private func bindLoadingData() {
+        articles
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe(onNext: { [weak self] data in
+                guard let self = self else { return }
+                
+                self.isLoading
+                    .onNext(data.isEmpty ? true : false)
             })
             .disposed(by: disposeBag)
     }

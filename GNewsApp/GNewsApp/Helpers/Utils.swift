@@ -104,3 +104,80 @@ enum PersistentDataTypes: String {
     case filters
     case sort
 }
+
+// MARK: - CircleLoadingIndicator
+class CircleLoadingIndicator: UIView {
+    // MARK: - Properties
+    private let circleTrackShapeLayer = CAShapeLayer()
+    private let circleLineShapeLayer = CAShapeLayer()
+    
+    var radius: CGFloat {
+        get {
+            return self.bounds.height
+        }
+    }
+    
+    var trackColor = UIColor.red.cgColor
+    var lineColor = UIColor.orange.cgColor
+    var lineWidth: CGFloat = 10
+    
+    // MARK: - Methods
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        let center = CGPoint(x: self.bounds.midX, y: self.bounds.midY)
+        
+        // Draw cirlce
+        let trackPath = UIBezierPath(arcCenter: center, radius: self.radius, startAngle: -(CGFloat.pi / 2), endAngle: (CGFloat.pi * 2), clockwise: true)
+        
+        // Initialize layer path
+        self.circleTrackShapeLayer.path = trackPath.cgPath
+        
+        // Customize layer
+        self.circleTrackShapeLayer.strokeColor = self.trackColor
+        self.circleTrackShapeLayer.lineWidth = self.lineWidth
+        self.circleTrackShapeLayer.fillColor = UIColor.clear.cgColor
+        self.circleTrackShapeLayer.lineCap = .round
+        
+        // Setup end point
+        self.circleTrackShapeLayer.strokeEnd = 1
+        
+        // Add layer to view
+        self.layer.addSublayer(self.circleTrackShapeLayer)
+        
+        // Draw cirlce
+        let linePath = UIBezierPath(arcCenter: center, radius: self.radius, startAngle: -(CGFloat.pi / 2), endAngle: (CGFloat.pi * 2), clockwise: true)
+        
+        // Initialize layer path
+        self.circleLineShapeLayer.path = linePath.cgPath
+        
+        // Customize layer
+        self.circleLineShapeLayer.strokeColor = self.lineColor
+        self.circleLineShapeLayer.lineWidth = self.lineWidth
+        self.circleLineShapeLayer.fillColor = UIColor.clear.cgColor
+        self.circleLineShapeLayer.lineCap = .round
+        
+        // Setup end point
+        self.circleLineShapeLayer.strokeEnd = 0.15
+        
+        // Add layer to view
+        self.layer.addSublayer(self.circleLineShapeLayer)
+    }
+}
+
+// MARK: - Extension to add loading animation to CircleLoadingIndicator
+extension CircleLoadingIndicator {
+    func startLoad() {
+        let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        rotateAnimation.fromValue = 0.0
+        rotateAnimation.toValue = CGFloat(.pi * 2.0)
+        rotateAnimation.duration = 2
+        rotateAnimation.repeatCount = .greatestFiniteMagnitude
+        
+        self.layer.add(rotateAnimation, forKey: "start_loading")
+    }
+    
+    func stopLoad() {
+        self.layer.removeAllAnimations()
+    }
+}

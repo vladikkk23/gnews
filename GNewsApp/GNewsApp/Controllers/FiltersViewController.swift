@@ -109,7 +109,6 @@ extension FiltersViewController {
                 guard let self = self else { return }
                 
                 self.contentFiltersSelectionView.shift(duration: 0.5, toogle: true, offset: CGPoint(x: self.view.frame.width, y: 0))
-                self.viewModel.fetchFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
@@ -130,6 +129,7 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
+                self.viewModel.fetchFilters.onNext(())
                 self.navigationViewModel.isFiltersViewActive.onNext(.primary)
             }
             .disposed(by: disposeBag)
@@ -140,7 +140,7 @@ extension FiltersViewController {
                 guard let self = self else { return }
                 
                 self.viewModel.saveFilters.onNext(())
-                self.navigationViewModel.secondaryFiltersSelected.onNext(())
+                self.navigationViewModel.primaryFilterSelected.onNext(())
             }
             .disposed(by: disposeBag)
     }
@@ -159,7 +159,7 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.viewModel.clearMainFilters.onNext(())
+                self.viewModel.clearFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
@@ -216,7 +216,7 @@ extension FiltersViewController {
             .bind { [weak self] in
                 guard let self = self else { return }
                 
-                self.viewModel.clearSecodnaryFilters.onNext(())
+                self.viewModel.clearFilters.onNext(())
             }
             .disposed(by: disposeBag)
         
