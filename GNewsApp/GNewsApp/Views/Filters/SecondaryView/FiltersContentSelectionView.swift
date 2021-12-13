@@ -67,7 +67,7 @@ class FiltersContentSelectionView: UIView {
         NSLayoutConstraint.activate([
             descriptionSwitchView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             descriptionSwitchView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            descriptionSwitchView.topAnchor.constraint(equalTo: self.titleSwitchView.bottomAnchor),
+            descriptionSwitchView.topAnchor.constraint(equalTo: self.titleSwitchView.bottomAnchor, constant: 10),
             descriptionSwitchView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.3)
         ])
     }
@@ -78,7 +78,7 @@ class FiltersContentSelectionView: UIView {
         NSLayoutConstraint.activate([
             contentSwitchView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             contentSwitchView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            contentSwitchView.topAnchor.constraint(equalTo: self.descriptionSwitchView.bottomAnchor),
+            contentSwitchView.topAnchor.constraint(equalTo: self.descriptionSwitchView.bottomAnchor, constant: 10),
             contentSwitchView.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.3)
         ])
     }

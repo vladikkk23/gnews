@@ -164,6 +164,7 @@ extension DataViewModel {
                     self.inContentSelected
                         .onNext(true)
                 }
+                
                 self.searchInSelected.onNext(Array(self.persistentFiltersData.searchIn).joined(separator: ", "))
             })
             .disposed(by: disposeBag)

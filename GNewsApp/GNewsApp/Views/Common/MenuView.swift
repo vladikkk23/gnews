@@ -84,7 +84,7 @@ class MenuView: UIView {
         
         NSLayoutConstraint.activate([
             buttonsStack.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            buttonsStack.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -10),
+            buttonsStack.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -5),
             buttonsStack.heightAnchor.constraint(equalTo: self.heightAnchor),
             buttonsStack.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.85)
         ])

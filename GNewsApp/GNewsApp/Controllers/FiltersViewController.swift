@@ -95,7 +95,7 @@ extension FiltersViewController {
     
     private func bindFiltersInputViewNavigationData() {
         filtersInputView.navigationView.backButton.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -104,7 +104,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         filtersInputView.filtersView.searchInButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -113,7 +113,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         filtersInputView.applyButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -125,7 +125,7 @@ extension FiltersViewController {
     
     private func bindContentFiltersSelectionViewNavigationData() {
         contentFiltersSelectionView.navigationView.backButton.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -135,7 +135,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         contentFiltersSelectionView.applyButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -155,7 +155,7 @@ extension FiltersViewController {
     
     private func bindFiltersInputViewData() {
         filtersInputView.navigationView.clearButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -164,7 +164,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         viewModel.fromDateSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] stringDate in
                 guard let self = self else { return }
                 
@@ -179,7 +179,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         viewModel.toDateSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] stringDate in
                 guard let self = self else { return }
                 
@@ -212,7 +212,7 @@ extension FiltersViewController {
     
     private func bindContentFiltersSelectionViewData() {
         contentFiltersSelectionView.navigationView.clearButton.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -221,7 +221,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         contentFiltersSelectionView.contentSelectionView.titleSwitchView.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -231,7 +231,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         contentFiltersSelectionView.contentSelectionView.descriptionSwitchView.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -241,7 +241,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         contentFiltersSelectionView.contentSelectionView.contentSwitchView.button.rx.tap
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .bind { [weak self] in
                 guard let self = self else { return }
                 
@@ -251,7 +251,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         viewModel.inTitleSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
                 
@@ -260,7 +260,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         viewModel.inDescriptionSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
                 
@@ -269,7 +269,7 @@ extension FiltersViewController {
             .disposed(by: disposeBag)
         
         viewModel.inContentSelected
-            .observe(on: MainScheduler.instance)
+            .observe(on: MainScheduler.asyncInstance)
             .subscribe(onNext: { [weak self] in
                 guard let self = self else { return }
                 

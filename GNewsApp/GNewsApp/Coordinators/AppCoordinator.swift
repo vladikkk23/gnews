@@ -35,7 +35,6 @@ class AppCoordinator: BaseCoordinator {
     
     private func subscribeToChanges() {
         guard let viewModel = navigationViewModel else { return }
-        let storage = StorageService()
         
         viewModel.isViewActive
             .subscribe(on: MainScheduler.instance)
@@ -45,14 +44,10 @@ class AppCoordinator: BaseCoordinator {
                 switch viewType {
                 case .news:
                     self.showNewsView()
-                    // MARK: - Reset filters
-                    _ = storage.flushAllFIlters()
                 case .search:
                     self.showSearchView()
                 default:
                     self.showInDevelopmentView()
-                    // MARK: - Reset filters
-                    _ = storage.flushAllFIlters()
                 }
             })
             .disposed(by: disposeBag)
